@@ -203,7 +203,7 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
 <div class="wrap">
 
 <header>
-  <p class="eyebrow">Projektdossier &middot; Stand 12. September 2026, 11:35 Uhr</p>
+  <p class="eyebrow">Projektdossier &middot; Stand 12. September 2026, 11:50 Uhr</p>
   <h1>MealMap</h1>
   <p class="lede">Rezepte, Meal-Prep-Plan und Einkaufsliste in einer Webapp. Dieses Dossier hält fest, was entschieden ist, was gebaut wird und was noch offen liegt.</p>
   <div class="meta">
@@ -380,7 +380,7 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
   <div class="stack" style="margin-top:20px">
     <div class="item risk">
       <h3>Dunkelmodus ist abgeleitet, nicht abgestimmt <span class="tag warn">bitte prüfen</span></h3>
-      <p>Das Moodboard definiert nur ein helles Thema. Für den Dunkelmodus habe ich aus derselben Palette eine Variante abgeleitet: warmes Braunschwarz statt Neutralgrau, helles Moos als tragender Akzent, Terrakotta bleibt der Signalton. Schau sie dir an und sag, ob sie so bleiben soll.</p>
+      <p>Das Moodboard definiert nur ein helles Thema. Für den Dunkelmodus wurde aus derselben Palette eine Variante abgeleitet: warmes Braunschwarz statt Neutralgrau, helles Moos als tragender Akzent, Terrakotta bleibt der Signalton. Die App folgt dabei der Einstellung des Betriebssystems — einen Umschalter in der Oberfläche gibt es bewusst noch nicht. Schau dir die Variante an und sag, ob sie so bleiben soll.</p>
     </div>
   </div>
 </section>
@@ -507,7 +507,9 @@ npm run dev        <span class="c"># läuft auf http://localhost:3000</span></pr
   <p class="h2sub">Für die Zusammenarbeit</p>
   <div class="rules">
     <ul>
-      <li><strong>Git bleibt bei Sarah.</strong> Claude führt keine Git-Befehle aus — kein <code>init</code>, kein <code>add</code>, kein <code>commit</code>, kein Branch. Wenn etwas versioniert werden soll, gibt Claude nur Bescheid, was zu tun ist. Ausnahme: die <code>.gitignore</code> darf als Datei angelegt und gepflegt werden.</li>
+      <li><strong>Git bleibt bei Sarah.</strong> Claude führt keine Git- oder GitHub-Befehle aus — auch keine lesenden wie <code>status</code> oder <code>log</code>. Wenn etwas versioniert werden soll, gibt Claude nur Bescheid, was zu tun ist, und schlägt auf Wunsch eine Commit-Nachricht vor. Ausnahme: die <code>.gitignore</code> darf als Datei angelegt und gepflegt werden.</li>
+      <li><strong>Rückfragen in Abfrageform.</strong> Offene Fragen kommen als Auswahl mit erklärten Antwortmöglichkeiten, nicht als Fließtext. Routinemäßige Kleinigkeiten entscheidet Claude selbst und sagt kurz Bescheid.</li>
+      <li><strong>Diese beiden Regeln gelten projektübergreifend.</strong> Sie stehen in <code>~/.claude/CLAUDE.md</code> und werden in jeder Claude-Code-Sitzung geladen, unabhängig vom Projektordner.</li>
       <li><strong>Phase für Phase.</strong> Nach jeder Phase wird gestoppt und auf Freigabe gewartet, bevor es weitergeht.</li>
       <li><strong>Keine Testdaten in Migrationen.</strong> Beispieldaten entstehen nur über <code>npm run db:seed</code>, damit die Live-Datenbank leer startet.</li>
       <li><strong>Dieses Dossier wird mitgeführt.</strong> Entscheidungen, Ideen und offene Punkte kommen hier rein, damit nichts im Chatverlauf verschwindet.</li>
@@ -515,6 +517,6 @@ npm run dev        <span class="c"># läuft auf http://localhost:3000</span></pr
   </div>
 </section>
 
-<footer>Dossier zu MealMap &middot; letzte Aktualisierung 12.09.2026, 11:35 Uhr &middot; Datei: docs/dossier.html</footer>
+<footer>Dossier zu MealMap &middot; letzte Aktualisierung 12.09.2026, 11:50 Uhr &middot; Datei: docs/dossier.html</footer>
 
 </div>

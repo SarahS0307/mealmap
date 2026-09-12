@@ -2,7 +2,19 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+/* Der dark-Zustand gilt in zwei Fällen: wenn die Klasse .dark gesetzt ist (für
+   einen späteren Umschalter) oder wenn das Betriebssystem auf Dunkel steht und
+   nicht ausdrücklich .light verlangt wurde. */
+@custom-variant dark {
+  &:is(.dark *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:not(.light *) {
+      @slot;
+    }
+  }
+}
 
 @theme inline {
   --color-background: var(--background);
@@ -103,6 +115,7 @@
   --chart-4: var(--moss-light);
   --chart-5: var(--terracotta-light);
   --radius: 0.75rem;
+  color-scheme: light;
   --sidebar: var(--paper);
   --sidebar-foreground: var(--ink);
   --sidebar-primary: var(--moss);
@@ -167,6 +180,69 @@
   --sidebar-accent-foreground: #F0E9DD;
   --sidebar-border: #3D362D;
   --sidebar-ring: #8FB08F;
+  color-scheme: dark;
+}
+
+/* Dieselben Werte, wenn das Betriebssystem auf Dunkel steht und kein
+   ausdrückliches .light gesetzt ist. Wird aus dem .dark-Block oben erzeugt –
+   bei Farbänderungen immer beide Stellen anpassen. */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    /* Aus der Moodboard-Palette abgeleitet: warmes Braunschwarz statt Neutralgrau,
+       helles Moos als tragender Akzent, Terrakotta bleibt der Signalton. */
+    --cream: #F0E9DD;
+    --paper: #2B2721;
+    --ink: #F0E9DD;
+    --moss: #7DA07D;
+    --moss-light: #A3C0A3;
+    --terracotta: #E5906A;
+    --terracotta-light: #F2B79A;
+    --mustard: #E8B94B;
+    --line: #3D362D;
+
+    --background: #211E1A;
+    --foreground: #F0E9DD;
+    --card: #2B2721;
+    --card-foreground: #F0E9DD;
+    --popover: #2B2721;
+    --popover-foreground: #F0E9DD;
+    --primary: #8FB08F;
+    --primary-foreground: #1B2519;
+    --secondary: #6B4229;
+    --secondary-foreground: #F7D9C4;
+    --muted: #322D26;
+    --muted-foreground: #ADA396;
+    --accent: #383229;
+    --accent-foreground: #F0E9DD;
+    --destructive: #E06A4A;
+    --border: #3D362D;
+    --input: #443C32;
+    --ring: #8FB08F;
+
+    --slot-breakfast: #7A6224;
+    --slot-breakfast-foreground: #F6E4B4;
+    --slot-lunch: #45603F;
+    --slot-lunch-foreground: #D7E7D2;
+    --slot-snack: #7A4527;
+    --slot-snack-foreground: #F7D9C4;
+    --slot-dinner: #3F5240;
+    --slot-dinner-foreground: #D2E2CE;
+
+    --chart-1: #8FB08F;
+    --chart-2: #E5906A;
+    --chart-3: #E8B94B;
+    --chart-4: #A3C0A3;
+    --chart-5: #F2B79A;
+    --sidebar: #2B2721;
+    --sidebar-foreground: #F0E9DD;
+    --sidebar-primary: #8FB08F;
+    --sidebar-primary-foreground: #1B2519;
+    --sidebar-accent: #383229;
+    --sidebar-accent-foreground: #F0E9DD;
+    --sidebar-border: #3D362D;
+    --sidebar-ring: #8FB08F;
+    color-scheme: dark;
+  }
 }
 
 @layer base {
