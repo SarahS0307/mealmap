@@ -1,0 +1,406 @@
+<title>MealMap Dossier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --ground:#F3F5F1; --surface:#FFFFFF; --surface-2:#E9EEE8;
+  --ink:#171D1A; --muted:#5F6C64; --line:#D6DCD4;
+  --accent:#3D6B4E; --accent-soft:#E3EDE4;
+  --amber:#8A5A14; --amber-soft:#F4E9D5;
+  --blue:#33596F; --blue-soft:#E0E9EE;
+  --shadow:0 1px 2px rgba(23,29,26,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#121715; --surface:#1A211E; --surface-2:#232B27;
+    --ink:#E6ECE7; --muted:#94A29A; --line:#2C3531;
+    --accent:#86B897; --accent-soft:#22302A;
+    --amber:#E0AE6A; --amber-soft:#2E2719;
+    --blue:#91B7CC; --blue-soft:#1B2830;
+    --shadow:0 1px 2px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#121715; --surface:#1A211E; --surface-2:#232B27;
+  --ink:#E6ECE7; --muted:#94A29A; --line:#2C3531;
+  --accent:#86B897; --accent-soft:#22302A;
+  --amber:#E0AE6A; --amber-soft:#2E2719;
+  --blue:#91B7CC; --blue-soft:#1B2830;
+  --shadow:0 1px 2px rgba(0,0,0,.3);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--ground); color:var(--ink);
+  font-family:"Source Serif 4","Iowan Old Style",Georgia,serif;
+  font-size:17px; line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:820px; margin:0 auto; padding:48px 24px 96px}
+h1,h2,h3,.mono,.eyebrow,.chip,th{font-family:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif}
+.mono,code,.spec dd,.num{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+
+/* ---- Kopf ---- */
+header{border-bottom:2px solid var(--ink); padding-bottom:28px; margin-bottom:8px}
+.eyebrow{
+  font-size:11.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--accent); margin:0 0 14px;
+}
+h1{
+  font-size:clamp(40px,7vw,60px); font-weight:800; line-height:1.02;
+  letter-spacing:-.025em; margin:0 0 14px; text-wrap:balance;
+}
+.lede{font-size:19px; color:var(--muted); margin:0; max-width:60ch}
+.meta{
+  display:flex; flex-wrap:wrap; gap:8px 28px; margin-top:24px;
+  font-family:"JetBrains Mono",monospace; font-size:12px; color:var(--muted);
+}
+.meta b{color:var(--ink); font-weight:600}
+
+/* ---- Sektionen ---- */
+section{margin-top:64px}
+h2{
+  font-size:13px; font-weight:600; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--muted); margin:0 0 6px;
+}
+.h2sub{
+  font-size:27px; font-weight:600; letter-spacing:-.02em; line-height:1.2;
+  margin:0 0 28px; padding-bottom:16px; border-bottom:1px solid var(--line);
+  font-family:"Bricolage Grotesque",sans-serif; text-wrap:balance;
+}
+p{margin:0 0 16px; max-width:68ch}
+p:last-child{margin-bottom:0}
+a{color:var(--accent)}
+
+/* ---- Entscheidungen ---- */
+.decisions{display:grid; gap:1px; background:var(--line); border:1px solid var(--line); border-radius:3px; overflow:hidden}
+.dec{background:var(--surface); padding:20px 22px; display:grid; grid-template-columns:132px 1fr; gap:4px 22px; align-items:baseline}
+.dec dt{
+  font-family:"Bricolage Grotesque",sans-serif; font-size:12px; font-weight:600;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--muted);
+}
+.dec dd{margin:0}
+.dec dd strong{font-weight:600}
+.dec .why{display:block; color:var(--muted); font-size:15px; margin-top:3px}
+@media (max-width:620px){ .dec{grid-template-columns:1fr; gap:6px} }
+
+/* ---- Phasen ---- */
+.phases{display:flex; flex-direction:column; gap:0}
+.phase{
+  display:grid; grid-template-columns:56px 1fr; gap:0 20px;
+  padding:20px 0 22px 0; border-left:2px dashed var(--line); padding-left:24px;
+  margin-left:6px;
+}
+.phase.active{border-left:2px solid var(--accent)}
+.phase.done{border-left:2px solid var(--accent)}
+.num{
+  font-size:13px; font-weight:600; color:var(--muted);
+  padding-top:4px; letter-spacing:.02em;
+}
+.phase.active .num,.phase.done .num{color:var(--accent)}
+.phase h3{
+  font-size:19px; font-weight:600; letter-spacing:-.012em; margin:0 0 6px;
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+}
+.phase p{font-size:16px; color:var(--muted); margin:0; max-width:58ch}
+.chip{
+  font-size:10.5px; font-weight:600; letter-spacing:.09em; text-transform:uppercase;
+  padding:3px 8px; border-radius:2px; white-space:nowrap;
+  background:var(--surface-2); color:var(--muted);
+}
+.chip.go{background:var(--accent-soft); color:var(--accent)}
+.chip.hold{background:var(--amber-soft); color:var(--amber)}
+.rail-note{font-size:14px; color:var(--muted); margin-top:20px; padding-left:30px}
+@media (max-width:620px){ .phase{grid-template-columns:1fr; gap:6px} .num{padding-top:0} }
+
+/* ---- Tabelle ---- */
+.tablewrap{overflow-x:auto; border:1px solid var(--line); border-radius:3px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:560px; font-size:15.5px}
+th{
+  text-align:left; font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--muted); padding:13px 16px; border-bottom:1px solid var(--line); white-space:nowrap;
+}
+td{padding:14px 16px; border-bottom:1px solid var(--line); vertical-align:top; line-height:1.5}
+tr:last-child td{border-bottom:none}
+td:first-child{color:var(--muted); font-family:"JetBrains Mono",monospace; font-size:12.5px; width:34px}
+code{
+  font-size:.87em; background:var(--surface-2); padding:1.5px 5px;
+  border-radius:2px; color:var(--ink); white-space:nowrap;
+}
+
+/* ---- Listen ---- */
+.stack{display:flex; flex-direction:column; gap:14px}
+.item{
+  background:var(--surface); border:1px solid var(--line); border-radius:3px;
+  padding:16px 18px; box-shadow:var(--shadow);
+}
+.item h3{font-size:16.5px; font-weight:600; margin:0 0 4px; letter-spacing:-.01em}
+.item p{font-size:15px; color:var(--muted); margin:0; max-width:none}
+.item.risk{border-left:3px solid var(--amber)}
+.item.later{border-left:3px solid var(--blue)}
+.tag{
+  font-family:"Bricolage Grotesque",sans-serif; font-size:10.5px; font-weight:600;
+  letter-spacing:.09em; text-transform:uppercase; color:var(--blue);
+  background:var(--blue-soft); padding:2px 7px; border-radius:2px; margin-left:8px;
+  vertical-align:2px;
+}
+.tag.warn{color:var(--amber); background:var(--amber-soft)}
+.tag.note{color:var(--accent); background:var(--accent-soft)}
+.item.note{border-left:3px solid var(--accent)}
+
+/* ---- Umgebung ---- */
+.spec{display:grid; grid-template-columns:auto 1fr; gap:0; border:1px solid var(--line); border-radius:3px; background:var(--surface); overflow:hidden}
+.spec dt{
+  font-family:"Bricolage Grotesque",sans-serif; font-size:12px; font-weight:600;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+  padding:11px 20px 11px 18px; border-bottom:1px solid var(--line); white-space:nowrap;
+  background:var(--surface-2);
+}
+.spec dd{
+  margin:0; padding:11px 18px; border-bottom:1px solid var(--line);
+  font-size:13px; overflow-x:auto;
+}
+.spec dt:last-of-type,.spec dd:last-of-type{border-bottom:none}
+.ok{color:var(--accent); font-weight:600}
+
+/* ---- Regeln ---- */
+.rules{background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:3px; padding:22px 24px}
+.rules ul{margin:0; padding-left:20px; display:flex; flex-direction:column; gap:10px}
+.rules li{max-width:62ch}
+.rules li strong{font-weight:600}
+
+footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font-size:13px; color:var(--muted); font-family:"JetBrains Mono",monospace}
+</style>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Projektdossier &middot; Stand 12. September 2026</p>
+  <h1>MealMap</h1>
+  <p class="lede">Rezepte, Meal-Prep-Plan und Einkaufsliste in einer Webapp. Dieses Dossier hält fest, was entschieden ist, was gebaut wird und was noch offen liegt.</p>
+  <div class="meta">
+    <span><b>Ordner</b> ~/Sites/MealMap</span>
+    <span><b>Quelle</b> mealmap-konzept.md</span>
+    <span><b>Phase</b> 0 von 7</span>
+  </div>
+</header>
+
+<section>
+  <h2>Kurzfassung</h2>
+  <p class="h2sub">Drei Module, ein Nutzer pro Datenbestand</p>
+  <p>MealMap hat eine Hauptnavigation aus <strong>Rezepte</strong>, <strong>Plan</strong> und <strong>Einkaufsliste</strong>, dazu eine Einstellungen-Seite. Angemeldet wird sich nur über den Namen, ohne Passwort; jede Entität hängt an einer <code>user_id</code>, die Nutzer sind vollständig voneinander getrennt.</p>
+  <p>Der rote Faden ist der Kochrhythmus: sonntags kochen, meist zwei Gerichte, die jeweils zweimal mittags gegessen werden. Daraus ergeben sich Portionen, Vorratsbestand und am Ende die Einkaufsliste — jeder automatische Vorschlag muss aber bestätigt werden, bevor er als fest gilt.</p>
+</section>
+
+<section>
+  <h2>Entscheidungen</h2>
+  <p class="h2sub">Festgelegt am 12.09.2026</p>
+  <dl class="decisions">
+    <div class="dec">
+      <dt>Stack</dt>
+      <dd><strong>Next.js 15 (App Router) + TypeScript + Prisma + SQLite</strong>
+      <span class="why">Ein Projekt für Frontend und Backend, Datenbank als lokale Datei. Später ohne Umbau auf Postgres umstellbar.</span></dd>
+    </div>
+    <div class="dec">
+      <dt>Oberfläche</dt>
+      <dd><strong>Tailwind CSS + shadcn/ui</strong>
+      <span class="why">Mobile-first. Fertige Dialoge, Formulare und Kalender-Bausteine, Optik später anpassbar.</span></dd>
+    </div>
+    <div class="dec">
+      <dt>KI-Import</dt>
+      <dd><strong>API-Key pro Nutzer, eingebbar in den Einstellungen</strong>
+      <span class="why">Ist ein Key hinterlegt, laufen Rezept-Import aus Bild, PDF und Link sowie die Kategorie-Vorschläge über die KI. Ohne Key funktioniert die App vollständig weiter — nur mit manueller Texteingabe und regelbasierten Vorschlägen.</span></dd>
+    </div>
+    <div class="dec">
+      <dt>Betrieb</dt>
+      <dd><strong>Vorerst lokal, Livegang später manuell</strong>
+      <span class="why">Testdaten entstehen ausschließlich über ein Seed-Skript, nie über Migrationen. Die Live-Instanz startet dadurch automatisch mit leerer Datenbank.</span></dd>
+    </div>
+    <div class="dec">
+      <dt>Versionierung</dt>
+      <dd><strong>Git liegt vollständig bei Sarah</strong>
+      <span class="why">Keine Commits, keine Branches, kein <code>git init</code> von Claude. Nur die <code>.gitignore</code> wird als Datei angelegt.</span></dd>
+    </div>
+  </dl>
+</section>
+
+<section>
+  <h2>Arbeitsplan</h2>
+  <p class="h2sub">Acht Phasen, jede einzeln freizugeben</p>
+  <div class="phases">
+
+    <div class="phase active">
+      <div class="num">00</div>
+      <div>
+        <h3>Grundgerüst <span class="chip hold">freigegeben, Start pausiert</span></h3>
+        <p>Next.js mit TypeScript, Tailwind und shadcn/ui aufsetzen, Prisma mit SQLite anbinden, <code>.gitignore</code> und <code>.env.example</code> anlegen. Basis-Layout mit der Hauptnavigation, mobile-first. Startbar, aber noch ohne Funktionen.</p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="num">01</div>
+      <div>
+        <h3>Datenmodell &amp; Nutzerverwaltung <span class="chip">geplant</span></h3>
+        <p>Vollständiges Prisma-Schema inklusive der sechs Korrekturen unten. Namenseingabe beim ersten Öffnen, Nutzerwechsel, Session per Cookie. Einstellungen-Seite mit API-Key-Feld pro Nutzer. Seed- und Reset-Skripte getrennt von den Migrationen.</p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="num">02</div>
+      <div>
+        <h3>Rezepte, Basis <span class="chip">geplant</span></h3>
+        <p>Rezept per Text anlegen, Kategorien anlegen, umbenennen und löschen inklusive Umzugs-Dialog für betroffene Rezepte. Rezeptliste, Detailansicht, Bearbeiten, Sternebewertung mit Kommentar, Notizfeld, Einfrierbar-Kennzeichen.</p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="num">03</div>
+      <div>
+        <h3>Rezepte, Erweiterungen <span class="chip">geplant</span></h3>
+        <p>Bild- und PDF-Upload, Webseiten- und Video-Link mit Embed, KI-Import mit Fallback auf manuelle Eingabe, Kategorie-Vorschläge, Kochmodus mit Timern und live skalierbaren Portionen, PDF-Export, Filter und Volltextsuche.</p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="num">04</div>
+      <div>
+        <h3>Plan, Basis <span class="chip">geplant</span></h3>
+        <p>Datumsweise Ansicht mit den fünf Slots plus Sonstiges-Liste, manuelles Einplanen, Trennung von Koch- und Essenstermin, Marker für Für-wen, Abwesenheit und Einkaufstag. Standardvorbelegung: kein Frühstück zuhause, Mittagessen im Geschäft.</p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="num">05</div>
+      <div>
+        <h3>Plan, Automatik <span class="chip">geplant</span></h3>
+        <p>Vorrats- und Bestandsübersicht, automatische Mengenskalierung, Vorschlagsmotor nach dem Sonntagsrhythmus mit Resten zuerst. Vorschläge sind gestrichelt dargestellt und werden erst durch Bestätigung fest.</p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="num">06</div>
+      <div>
+        <h3>Einkaufsliste, Basis <span class="chip">geplant</span></h3>
+        <p>Automatische Generierung aus bestätigten Plan-Einträgen, Zusammenfassung gleicher Zutaten zu einem Posten, anteiliger Abzug beim Entfernen eines Rezepts, frei hinzufügbare manuelle Posten.</p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="num">07</div>
+      <div>
+        <h3>Einkaufsliste, Feinschliff <span class="chip">geplant</span></h3>
+        <p>Abgleich mit dem Vorrat, Gruppierung nach Supermarktbereichen von Obst &amp; Gemüse bis Tiefkühl, Bereich „zuletzt erledigt“ am Listenende, Haltbarkeitshinweise für einen möglichen zweiten Einkaufstermin.</p>
+      </div>
+    </div>
+
+  </div>
+  <p class="rail-note">Durchgezogene Linie heißt freigegeben, gestrichelt heißt geplant — dieselbe Unterscheidung, die die App später zwischen bestätigten Einträgen und Vorschlägen macht.</p>
+</section>
+
+<section>
+  <h2>Datenmodell</h2>
+  <p class="h2sub">Sechs Korrekturen gegenüber dem Konzept</p>
+  <p>Das Datenmodell aus Abschnitt 7 des Konzepts trägt weitgehend. An sechs Stellen deckt es die beschriebenen Funktionen aber noch nicht ab. Alle Änderungen sind additiv, das Konzept bricht dadurch nicht.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>#</th><th>Problem</th><th>Lösung</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><code>PlanEntry</code> hat nur ein <code>date</code>, das Konzept verlangt Koch- und Essenstermin getrennt</td><td>Feld aufteilen in <code>cook_date</code> und <code>eat_date</code></td></tr>
+        <tr><td>2</td><td><code>is_absent</code> und <code>is_shopping_day</code> hängen an der einzelnen Mahlzeit, sind aber Eigenschaften des Tages</td><td>Eigener Datensatz <code>PlanDay</code> pro Tag und Nutzer</td></tr>
+        <tr><td>3</td><td><code>ShoppingListItem.source</code> kennt nur ein Rezept, der anteilige Abzug braucht alle Beiträge</td><td>Zusätzliche Tabelle <code>ShoppingListContribution</code> (Posten ↔ Plan-Eintrag ↔ Menge)</td></tr>
+        <tr><td>4</td><td>Zutaten sind freier Text, „Zwiebel“ und „Zwiebeln“ lassen sich nicht zusammenfassen</td><td>Normalisierungs- und Einheitenschicht als eigenes, testbares Modul</td></tr>
+        <tr><td>5</td><td>Der Vorrat füllt sich nie von selbst, ist aber Grundlage für Vorschläge und Einkaufsabgleich</td><td>Kochtermin abhaken erzeugt <code>StockItem</code>, Essenstermin abhaken zieht ab</td></tr>
+        <tr><td>6</td><td><code>category_ids</code> als Array lässt sich in SQL nicht abbilden</td><td>Normale n:m-Verknüpfungstabelle, für die App identisches Verhalten</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>Ideen &amp; Backlog</h2>
+  <p class="h2sub">Bewusst nicht im ersten Wurf</p>
+  <p>Sammelstelle für alles, was später kommen soll. Was du nebenbei erwähnst und nicht sofort umgesetzt haben willst, landet automatisch hier. <span class="tag note">vorgemerkt</span> heißt: fest eingeplant, nur noch nicht dran. <span class="tag">Backlog</span> heißt: bewusst nach dem MVP.</p>
+  <p>Das Datenmodell ist auf die beiden Sharing-Punkte bereits vorbereitet — <code>shared_with</code> liegt an <code>Recipe</code> und <code>ShoppingListItem</code> und bleibt vorerst ungenutzt.</p>
+  <div class="stack">
+    <div class="item later">
+      <h3>Einkaufslisten kombinieren <span class="tag">Backlog</span></h3>
+      <p>Zwei Nutzer legen ihre Listen auf Wunsch zusammen, etwa für einen gemeinsamen Einkauf.</p>
+    </div>
+    <div class="item later">
+      <h3>Rezepte teilen <span class="tag">Backlog</span></h3>
+      <p>Ein Rezept für andere Nutzer freigeben, statt es doppelt anzulegen.</p>
+    </div>
+    <div class="item later">
+      <h3>KI-Freitextfeld im Plan <span class="tag">Backlog</span></h3>
+      <p>Eingaben wie „Ich bin Dienstag nicht da“ oder „diese Woche gerne Pasta“ werden interpretiert: Marker werden gesetzt, passende Rezepte vorgeschlagen.</p>
+    </div>
+    <div class="item note">
+      <h3>Logo &amp; Favicon <span class="tag note">vorgemerkt</span></h3>
+      <p>MealMap braucht eine eigene Bildmarke: ein Logo für den Kopfbereich und ein Favicon für den Browser-Tab, beides auf hellem und dunklem Hintergrund lesbar. Wird angegangen, sobald das Grundgerüst steht und man sieht, wie viel Platz im Header ist.</p>
+    </div>
+    <div class="item note">
+      <h3>Hinweis auf Claude im Footer <span class="tag note">vorgemerkt</span></h3>
+      <p>Im Footer der Webapp soll stehen, dass die App mit Claude gebaut wurde. Kommt ins Basis-Layout, spätestens wenn der Footer gestaltet wird.</p>
+    </div>
+    <div class="item">
+      <h3>Platz für neue Ideen</h3>
+      <p>Alles, was dir während der Umsetzung einfällt, kommt hier rein — einmal erwähnen reicht, ich trage es nach und veröffentliche das Dossier neu.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Offene Punkte</h2>
+  <p class="h2sub">Zu klären, bevor die jeweilige Phase startet</p>
+  <div class="stack">
+    <div class="item risk">
+      <h3>API-Key liegt im Klartext <span class="tag warn">vor Livegang</span></h3>
+      <p>Der Key wird serverseitig am Nutzer gespeichert, sonst könnte der Server die Imports nicht ausführen. In der lokalen SQLite-Datei ist das unkritisch. Sobald die App online geht, sollte er verschlüsselt abgelegt werden.</p>
+    </div>
+    <div class="item risk">
+      <h3>Kosten pro Import <span class="tag warn">Phase 3</span></h3>
+      <p>Jeder Import aus Bild, PDF oder Link verursacht Kosten über den hinterlegten Key. Ich baue eine Anzeige ein, die vor dem Import sagt, dass jetzt die KI benutzt wird.</p>
+    </div>
+    <div class="item risk">
+      <h3>Einheiten ohne saubere Umrechnung <span class="tag warn">Phase 6</span></h3>
+      <p>„2 Zwiebeln“ und „150 g Zwiebeln“ lassen sich nicht addieren. Die Liste fasst nur zusammen, was dieselbe Einheit hat, und zeigt den Rest als getrennte Posten. Erfahrungsgemäß der Punkt, an dem eine Einkaufsliste unübersichtlich wird.</p>
+    </div>
+    <div class="item risk">
+      <h3>Haltbarkeitsdaten kommen nicht von allein <span class="tag warn">Phase 7</span></h3>
+      <p>Für den Hinweis auf einen zweiten Einkaufstermin braucht es pro Zutat eine grobe Haltbarkeit. Ich starte mit einer hinterlegten Liste für gängige Zutaten, die du überschreiben kannst.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Umgebung</h2>
+  <p class="h2sub">Geprüft am 12.09.2026</p>
+  <dl class="spec">
+    <dt>Node</dt><dd class="mono">v25.9.0 <span class="ok">ausreichend für Next.js 15</span></dd>
+    <dt>npm</dt><dd class="mono">11.12.1</dd>
+    <dt>Git</dt><dd class="mono">2.50.1 — Projektordner ist noch kein Repository</dd>
+    <dt>Nicht da</dt><dd class="mono">Docker, pnpm, bun — werden auch nicht gebraucht</dd>
+    <dt>MAMP</dt><dd class="mono"><span class="ok">läuft</span> — Apache auf :8888, MySQL 8 auf :8889, PHP 8.3.30</dd>
+    <dt>DocumentRoot</dt><dd class="mono">/Users/sarahschoenthaler/Sites</dd>
+    <dt>Port 3000</dt><dd class="mono">frei — hier wird MealMap laufen</dd>
+  </dl>
+  <p style="margin-top:20px">MealMap braucht MAMP nicht: Next.js bringt seinen eigenen Server mit und läuft über Node auf Port 3000, Apache und MySQL bleiben davon unberührt. Weil der Projektordner im DocumentRoot liegt, wäre er theoretisch auch über <code>localhost:8888/MealMap</code> erreichbar — dort käme allerdings nur der nackte Quellcode heraus, nicht die App. MAMP kann also weiterlaufen, sollte aber nicht als Einstieg benutzt werden.</p>
+</section>
+
+<section>
+  <h2>Arbeitsregeln</h2>
+  <p class="h2sub">Für die Zusammenarbeit</p>
+  <div class="rules">
+    <ul>
+      <li><strong>Git bleibt bei Sarah.</strong> Claude führt keine Git-Befehle aus — kein <code>init</code>, kein <code>add</code>, kein <code>commit</code>, kein Branch. Wenn etwas versioniert werden soll, gibt Claude nur Bescheid, was zu tun ist. Ausnahme: die <code>.gitignore</code> darf als Datei angelegt und gepflegt werden.</li>
+      <li><strong>Phase für Phase.</strong> Nach jeder Phase wird gestoppt und auf Freigabe gewartet, bevor es weitergeht.</li>
+      <li><strong>Keine Testdaten in Migrationen.</strong> Beispieldaten entstehen nur über <code>npm run db:seed</code>, damit die Live-Datenbank leer startet.</li>
+      <li><strong>Dieses Dossier wird mitgeführt.</strong> Entscheidungen, Ideen und offene Punkte kommen hier rein, damit nichts im Chatverlauf verschwindet.</li>
+    </ul>
+  </div>
+</section>
+
+<footer>Dossier zu MealMap &middot; letzte Aktualisierung 12.09.2026 &middot; Datei: docs/dossier.html</footer>
+
+</div>
