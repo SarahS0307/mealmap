@@ -1,0 +1,189 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Moodboard-Farben, direkt als Tailwind-Klassen nutzbar (bg-moss, text-terracotta, ...) */
+  --color-moss: var(--moss);
+  --color-moss-light: var(--moss-light);
+  --color-terracotta: var(--terracotta);
+  --color-terracotta-light: var(--terracotta-light);
+  --color-mustard: var(--mustard);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  /* --- Moodboard-Palette (Quelle: docs/moodboard.html) --- */
+  --cream: #FBF6EE;
+  --paper: #FFFFFF;
+  --ink: #2B2A26;
+  --moss: #4A6B4A;
+  --moss-light: #7DA07D;
+  --terracotta: #D97B4C;
+  --terracotta-light: #F2B79A;
+  --mustard: #E8B94B;
+  --line: #E4DCCB;
+
+  /* --- Daraus abgeleitete shadcn-Tokens --- */
+  --background: var(--cream);
+  --foreground: var(--ink);
+  --card: var(--paper);
+  --card-foreground: var(--ink);
+  --popover: var(--paper);
+  --popover-foreground: var(--ink);
+  --primary: var(--moss);
+  --primary-foreground: var(--cream);
+  --secondary: var(--terracotta-light);
+  --secondary-foreground: #7A3D1C;
+  --muted: #F3ECE0;
+  --muted-foreground: #6B6A63;
+  --accent: #EFE7D8;
+  --accent-foreground: var(--ink);
+  --destructive: #C0492B;
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--moss-light);
+
+  /* Mahlzeiten-Slots im Plan */
+  --slot-breakfast: var(--mustard);
+  --slot-breakfast-foreground: #5C4611;
+  --slot-lunch: var(--moss-light);
+  --slot-lunch-foreground: #1F351F;
+  --slot-snack: var(--terracotta-light);
+  --slot-snack-foreground: #7A3D1C;
+  --slot-dinner: #C8D6C0;
+  --slot-dinner-foreground: #2C3B26;
+
+  --chart-1: var(--moss);
+  --chart-2: var(--terracotta);
+  --chart-3: var(--mustard);
+  --chart-4: var(--moss-light);
+  --chart-5: var(--terracotta-light);
+  --radius: 0.75rem;
+  --sidebar: var(--paper);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--moss);
+  --sidebar-primary-foreground: var(--cream);
+  --sidebar-accent: #EFE7D8;
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--line);
+  --sidebar-ring: var(--moss-light);
+}
+
+.dark {
+  /* Aus der Moodboard-Palette abgeleitet: warmes Braunschwarz statt Neutralgrau,
+     helles Moos als tragender Akzent, Terrakotta bleibt der Signalton. */
+  --cream: #F0E9DD;
+  --paper: #2B2721;
+  --ink: #F0E9DD;
+  --moss: #7DA07D;
+  --moss-light: #A3C0A3;
+  --terracotta: #E5906A;
+  --terracotta-light: #F2B79A;
+  --mustard: #E8B94B;
+  --line: #3D362D;
+
+  --background: #211E1A;
+  --foreground: #F0E9DD;
+  --card: #2B2721;
+  --card-foreground: #F0E9DD;
+  --popover: #2B2721;
+  --popover-foreground: #F0E9DD;
+  --primary: #8FB08F;
+  --primary-foreground: #1B2519;
+  --secondary: #6B4229;
+  --secondary-foreground: #F7D9C4;
+  --muted: #322D26;
+  --muted-foreground: #ADA396;
+  --accent: #383229;
+  --accent-foreground: #F0E9DD;
+  --destructive: #E06A4A;
+  --border: #3D362D;
+  --input: #443C32;
+  --ring: #8FB08F;
+
+  --slot-breakfast: #7A6224;
+  --slot-breakfast-foreground: #F6E4B4;
+  --slot-lunch: #45603F;
+  --slot-lunch-foreground: #D7E7D2;
+  --slot-snack: #7A4527;
+  --slot-snack-foreground: #F7D9C4;
+  --slot-dinner: #3F5240;
+  --slot-dinner-foreground: #D2E2CE;
+
+  --chart-1: #8FB08F;
+  --chart-2: #E5906A;
+  --chart-3: #E8B94B;
+  --chart-4: #A3C0A3;
+  --chart-5: #F2B79A;
+  --sidebar: #2B2721;
+  --sidebar-foreground: #F0E9DD;
+  --sidebar-primary: #8FB08F;
+  --sidebar-primary-foreground: #1B2519;
+  --sidebar-accent: #383229;
+  --sidebar-accent-foreground: #F0E9DD;
+  --sidebar-border: #3D362D;
+  --sidebar-ring: #8FB08F;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+}

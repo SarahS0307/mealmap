@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>MealMap – Moodboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap');
+
+  :root{
+    --cream:#FBF6EE;
+    --paper:#FFFFFF;
+    --ink:#2B2A26;
+    --moss:#4A6B4A;
+    --moss-light:#7DA07D;
+    --terracotta:#D97B4C;
+    --terracotta-light:#F2B79A;
+    --mustard:#E8B94B;
+    --line:#E4DCCB;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Work Sans', sans-serif;
+    padding:48px 24px 80px;
+  }
+  .wrap{max-width:1000px;margin:0 auto;}
+
+  header{margin-bottom:56px;}
+  header .kicker{
+    font-size:13px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--moss);
+    font-weight:600;
+    margin-bottom:8px;
+  }
+  header h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:52px;
+    margin:0 0 12px;
+    letter-spacing:-.01em;
+  }
+  header p{
+    font-size:16px;
+    color:#6b6a63;
+    max-width:520px;
+    margin:0;
+  }
+
+  section{margin-bottom:64px;}
+  section > h2{
+    font-family:'Fraunces', serif;
+    font-size:22px;
+    font-weight:600;
+    margin:0 0 20px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  section > h2 .num{
+    width:28px;height:28px;
+    border-radius:50%;
+    background:var(--ink);
+    color:var(--cream);
+    font-family:'Work Sans',sans-serif;
+    font-size:13px;
+    font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+  }
+
+  /* Farbpalette */
+  .palette{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;}
+  .swatch{
+    border-radius:14px;
+    overflow:hidden;
+    box-shadow:0 1px 3px rgba(0,0,0,.06);
+    border:1px solid var(--line);
+  }
+  .swatch .fill{height:88px;}
+  .swatch .label{
+    background:var(--paper);
+    padding:10px 12px;
+  }
+  .swatch .name{font-size:13px;font-weight:600;}
+  .swatch .hex{font-size:11px;color:#8a887f;letter-spacing:.02em;}
+
+  /* Typografie */
+  .type-card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:32px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:32px;
+  }
+  .type-block .role{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    color:var(--moss);
+    font-weight:600;
+    margin-bottom:10px;
+  }
+  .type-block .heading-sample{
+    font-family:'Fraunces', serif;
+    font-size:34px;
+    font-weight:600;
+    margin:0 0 6px;
+  }
+  .type-block .body-sample{
+    font-family:'Work Sans', sans-serif;
+    font-size:15px;
+    line-height:1.6;
+    color:#4a4940;
+    margin:0;
+  }
+  .type-meta{font-size:12px;color:#8a887f;margin-top:10px;}
+
+  /* Logo */
+  .logo-row{display:flex;gap:20px;flex-wrap:wrap;}
+  .logo-card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:28px 32px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex:1;
+    min-width:260px;
+  }
+  .logo-card.dark{background:var(--ink);}
+  .logo-mark{
+    width:44px;height:44px;
+    border-radius:12px;
+    background:var(--moss);
+    position:relative;
+    flex-shrink:0;
+  }
+  .logo-mark::before{
+    content:"";
+    position:absolute;
+    left:50%;top:50%;
+    transform:translate(-50%,-52%);
+    width:16px;height:16px;
+    border:3px solid var(--cream);
+    border-bottom:none;
+    border-right:none;
+    border-radius:16px 16px 0 0;
+    rotate:45deg;
+  }
+  .logo-mark::after{
+    content:"";
+    position:absolute;
+    left:50%;top:57%;
+    transform:translate(-50%,-50%);
+    width:6px;height:6px;
+    border-radius:50%;
+    background:var(--terracotta);
+  }
+  .logo-word{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:26px;
+  }
+  .logo-card:not(.dark) .logo-word{color:var(--ink);}
+  .logo-card.dark .logo-word{color:var(--cream);}
+  .logo-word span{color:var(--terracotta);}
+
+  /* Favicon */
+  .favicon-row{display:flex;gap:16px;align-items:center;}
+  .favicon{
+    width:56px;height:56px;
+    border-radius:14px;
+    background:var(--moss);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 1px 3px rgba(0,0,0,.15);
+  }
+  .favicon.sm{width:32px;height:32px;border-radius:9px;}
+  .favicon .pin{
+    width:14px;height:14px;
+    border:2.5px solid var(--cream);
+    border-bottom:none;border-right:none;
+    border-radius:14px 14px 0 0;
+    rotate:45deg;
+    position:relative;
+  }
+  .favicon.sm .pin{width:9px;height:9px;border-width:1.8px;}
+  .favicon-caption{font-size:12px;color:#8a887f;}
+
+  /* UI Beispiele */
+  .ui-demo{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:28px;
+    display:flex;
+    gap:32px;
+    flex-wrap:wrap;
+    align-items:flex-start;
+  }
+  .ui-col{flex:1;min-width:220px;}
+  .ui-col .role{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#8a887f;font-weight:600;margin-bottom:14px;}
+  .btn{
+    display:inline-block;
+    font-family:'Work Sans',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    padding:11px 20px;
+    border-radius:10px;
+    margin:0 8px 8px 0;
+  }
+  .btn.primary{background:var(--moss);color:var(--cream);}
+  .btn.secondary{background:var(--terracotta-light);color:#7a3d1c;}
+  .btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink);}
+  .chip{
+    display:inline-block;
+    font-size:12px;
+    font-weight:600;
+    padding:6px 12px;
+    border-radius:20px;
+    margin:0 8px 8px 0;
+  }
+  .chip.frueh{background:var(--mustard);color:#5c4611;}
+  .chip.mittag{background:var(--moss-light);color:#1f351f;}
+  .chip.snack{background:var(--terracotta-light);color:#7a3d1c;}
+  .chip.vorschlag{background:transparent;border:1.5px dashed #b8b6ab;color:#6b6a63;}
+
+  .card-demo{
+    background:var(--cream);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:16px;
+  }
+  .card-demo .title{font-family:'Fraunces',serif;font-weight:600;font-size:16px;margin-bottom:6px;}
+  .card-demo .meta{font-size:12px;color:#8a887f;}
+
+  footer{
+    text-align:center;
+    font-size:12px;
+    color:#a8a698;
+    margin-top:40px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="kicker">Moodboard</div>
+    <h1>MealMap</h1>
+    <p>Warme, erdige Food-Ästhetik mit klarer, ruhiger UI – frisch statt clean-steril, einladend statt technisch.</p>
+  </header>
+
+  <section>
+    <h2><span class="num">1</span>Farbpalette</h2>
+    <div class="palette">
+      <div class="swatch">
+        <div class="fill" style="background:var(--moss);"></div>
+        <div class="label"><div class="name">Moos</div><div class="hex">#4A6B4A</div></div>
+      </div>
+      <div class="swatch">
+        <div class="fill" style="background:var(--moss-light);"></div>
+        <div class="label"><div class="name">Moos hell</div><div class="hex">#7DA07D</div></div>
+      </div>
+      <div class="swatch">
+        <div class="fill" style="background:var(--terracotta);"></div>
+        <div class="label"><div class="name">Terrakotta</div><div class="hex">#D97B4C</div></div>
+      </div>
+      <div class="swatch">
+        <div class="fill" style="background:var(--mustard);"></div>
+        <div class="label"><div class="name">Senfgelb</div><div class="hex">#E8B94B</div></div>
+      </div>
+      <div class="swatch">
+        <div class="fill" style="background:var(--cream);"></div>
+        <div class="label"><div class="name">Creme (BG)</div><div class="hex">#FBF6EE</div></div>
+      </div>
+      <div class="swatch">
+        <div class="fill" style="background:var(--ink);"></div>
+        <div class="label"><div class="name">Tinte (Text)</div><div class="hex">#2B2A26</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">2</span>Typografie</h2>
+    <div class="type-card">
+      <div class="type-block">
+        <div class="role">Headings — Fraunces</div>
+        <p class="heading-sample">Sonntag kochen,<br>die Woche entspannt genießen</p>
+        <div class="type-meta">Serifenbetont, warm, leicht editorial — für Titel, Rezeptnamen, Logo.</div>
+      </div>
+      <div class="type-block">
+        <div class="role">Fließtext — Work Sans</div>
+        <p class="body-sample">200 g Quinoa, 1 Salatgurke, 3 Frühlingszwiebeln, 200 g Mais, 150 g Edamame. Klar lesbar auf Mobile und Desktop, funktioniert gut für Zutatenlisten und UI-Text.</p>
+        <div class="type-meta">Neutral, gut lesbar in kleinen Größen — für Zutaten, Buttons, Navigation.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">3</span>Logo-Konzept</h2>
+    <div class="logo-row">
+      <div class="logo-card">
+        <div class="logo-mark"></div>
+        <div class="logo-word">Meal<span>Map</span></div>
+      </div>
+      <div class="logo-card dark">
+        <div class="logo-mark"></div>
+        <div class="logo-word">Meal<span>Map</span></div>
+      </div>
+    </div>
+    <div class="type-meta" style="margin-top:12px;">Icon: stilisierte Pin-Form (Standort/„Karte") kombiniert mit einem Punkt als Teller-Andeutung — verbindet „Map" (Plan) mit „Meal" (Essen).</div>
+  </section>
+
+  <section>
+    <h2><span class="num">4</span>Favicon</h2>
+    <div class="favicon-row">
+      <div class="favicon"><div class="pin"></div></div>
+      <div class="favicon sm"><div class="pin"></div></div>
+      <div class="favicon-caption">Reduziertes Icon ohne Wortmarke, funktioniert auch klein (Browser-Tab, Homescreen).</div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">5</span>UI-Elemente</h2>
+    <div class="ui-demo">
+      <div class="ui-col">
+        <div class="role">Buttons</div>
+        <span class="btn primary">Rezept speichern</span><br>
+        <span class="btn secondary">Vorschlag bestätigen</span><br>
+        <span class="btn ghost">Abbrechen</span>
+      </div>
+      <div class="ui-col">
+        <div class="role">Slot- / Status-Chips</div>
+        <span class="chip frueh">Frühstück</span>
+        <span class="chip mittag">Mittagessen</span>
+        <span class="chip snack">Snack</span><br>
+        <span class="chip vorschlag">Vorschlag</span>
+      </div>
+      <div class="ui-col">
+        <div class="role">Rezeptkarte</div>
+        <div class="card-demo">
+          <div class="title">Quinoasalat mit Edamame</div>
+          <div class="meta">Mittagessen · Einfrierbar: Nein · ★★★★★</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>MealMap Moodboard — Farben, Typografie &amp; UI-Grundlage für die Umsetzung</footer>
+
+</div>
+</body>
+</html>

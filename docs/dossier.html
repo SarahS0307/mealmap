@@ -164,6 +164,21 @@ code{
 .spec dt:last-of-type,.spec dd:last-of-type{border-bottom:none}
 .ok{color:var(--accent); font-weight:600}
 
+/* ---- Gestaltung ---- */
+.palette{display:grid; grid-template-columns:repeat(auto-fit,minmax(104px,1fr)); gap:10px}
+.sw{border:1px solid var(--line); border-radius:3px; overflow:hidden; background:var(--surface)}
+.sw .fill{height:60px}
+.sw .cap{padding:8px 10px}
+.sw .nm{font-family:"Bricolage Grotesque",sans-serif; font-size:12px; font-weight:600}
+.sw .hx{font-family:"JetBrains Mono",monospace; font-size:10.5px; color:var(--muted); margin-top:1px}
+.linkbox{display:grid; grid-template-columns:auto 1fr; border:1px solid var(--line); border-radius:3px; background:var(--surface); overflow:hidden}
+.linkbox dt{font-family:"Bricolage Grotesque",sans-serif; font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); background:var(--surface-2); padding:12px 18px; border-bottom:1px solid var(--line); white-space:nowrap}
+.linkbox dd{margin:0; padding:12px 18px; border-bottom:1px solid var(--line); font-family:"JetBrains Mono",monospace; font-size:13px; overflow-x:auto}
+.linkbox dt:last-of-type,.linkbox dd:last-of-type{border-bottom:none}
+.linkbox .hint{display:block; font-family:"Source Serif 4",Georgia,serif; font-size:14px; color:var(--muted); margin-top:3px}
+.fonts{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+@media (max-width:620px){ .fonts{grid-template-columns:1fr} }
+
 /* ---- Regeln ---- */
 .rules{background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:3px; padding:22px 24px}
 .rules ul{margin:0; padding-left:20px; display:flex; flex-direction:column; gap:10px}
@@ -176,13 +191,14 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
 <div class="wrap">
 
 <header>
-  <p class="eyebrow">Projektdossier &middot; Stand 12. September 2026</p>
+  <p class="eyebrow">Projektdossier &middot; Stand 12. September 2026, 10:15 Uhr</p>
   <h1>MealMap</h1>
   <p class="lede">Rezepte, Meal-Prep-Plan und Einkaufsliste in einer Webapp. Dieses Dossier hält fest, was entschieden ist, was gebaut wird und was noch offen liegt.</p>
   <div class="meta">
     <span><b>Ordner</b> ~/Sites/MealMap</span>
     <span><b>Quelle</b> mealmap-konzept.md</span>
-    <span><b>Phase</b> 0 von 7</span>
+    <span><b>Phase</b> 0 erledigt, 1 offen</span>
+    <span><b>Lokal</b> localhost:3000</span>
   </div>
 </header>
 
@@ -194,13 +210,24 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
 </section>
 
 <section>
+  <h2>Links</h2>
+  <p class="h2sub">Wo die App gerade läuft</p>
+  <dl class="linkbox">
+    <dt>Am Rechner</dt><dd>http://localhost:3000<span class="hint">Next.js direkt. Läuft nach <code>npm run dev</code>.</span></dd>
+    <dt>Mit BrowserSync</dt><dd>http://localhost:3001<span class="hint">Proxy mit Geräte-Mirroring. Läuft nach <code>npm run sync</code>.</span></dd>
+    <dt>Am Handy</dt><dd>http://192.168.178.38:3001<span class="hint">Nur im selben WLAN und nur solange <code>npm run sync</code> läuft. Ändert sich, wenn der Rechner eine neue IP bekommt – die aktuelle steht beim Start im Log.</span></dd>
+    <dt>Dossier lokal</dt><dd>http://localhost:8888/MealMap/docs/dossier.html<span class="hint">Über MAMP, unabhängig von der App.</span></dd>
+  </dl>
+</section>
+
+<section>
   <h2>Entscheidungen</h2>
   <p class="h2sub">Festgelegt am 12.09.2026</p>
   <dl class="decisions">
     <div class="dec">
       <dt>Stack</dt>
-      <dd><strong>Next.js 15 (App Router) + TypeScript + Prisma + SQLite</strong>
-      <span class="why">Ein Projekt für Frontend und Backend, Datenbank als lokale Datei. Später ohne Umbau auf Postgres umstellbar.</span></dd>
+      <dd><strong>Next.js 15.5.25, React 19.1, TypeScript, Prisma 7.10, SQLite</strong>
+      <span class="why">Ein Projekt für Frontend und Backend, Datenbank als lokale Datei. Später ohne Umbau auf Postgres umstellbar — ab Prisma 7 wird dafür nur der Treiber-Adapter in <code>src/lib/prisma.ts</code> getauscht.</span></dd>
     </div>
     <div class="dec">
       <dt>Oberfläche</dt>
@@ -218,6 +245,21 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       <span class="why">Testdaten entstehen ausschließlich über ein Seed-Skript, nie über Migrationen. Die Live-Instanz startet dadurch automatisch mit leerer Datenbank.</span></dd>
     </div>
     <div class="dec">
+      <dt>Gestaltung</dt>
+      <dd><strong>Moodboard von Sarah, umgesetzt als Design-Tokens</strong>
+      <span class="why">Moos, Terrakotta, Senfgelb und Creme, dazu Fraunces und Work Sans. Liegt als Token-Satz in <code>globals.css</code>, nicht verstreut im Code — ein Farbwechsel trifft damit die ganze App auf einmal.</span></dd>
+    </div>
+    <div class="dec">
+      <dt>Entwicklungsserver</dt>
+      <dd><strong>Next.js, wahlweise mit BrowserSync-Proxy davor</strong>
+      <span class="why"><code>npm run dev</code> startet nur Next auf Port 3000. <code>npm run sync</code> startet zusätzlich BrowserSync auf 3001 — dafür gibt es eine Netzwerk-URL fürs Handy und synchrones Scrollen und Klicken über mehrere Geräte. Next bringt sein Hot Reloading selbst mit, BrowserSync reicht den Websocket per <code>ws: true</code> durch.</span></dd>
+    </div>
+    <div class="dec">
+      <dt>Versionsstände</dt>
+      <dd><strong>Bewusst auf stabilen Versionen statt auf <code>latest</code></strong>
+      <span class="why">Der <code>latest</code>-Tag von Prisma zeigt derzeit auf einen Release Candidate (8.0.0-rc.13). Als Fundament ist 7.10.0 festgelegt.</span></dd>
+    </div>
+    <div class="dec">
       <dt>Versionierung</dt>
       <dd><strong>Git liegt vollständig bei Sarah</strong>
       <span class="why">Keine Commits, keine Branches, kein <code>git init</code> von Claude. Nur die <code>.gitignore</code> wird als Datei angelegt.</span></dd>
@@ -230,18 +272,18 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
   <p class="h2sub">Acht Phasen, jede einzeln freizugeben</p>
   <div class="phases">
 
-    <div class="phase active">
+    <div class="phase done">
       <div class="num">00</div>
       <div>
-        <h3>Grundgerüst <span class="chip hold">freigegeben, Start pausiert</span></h3>
-        <p>Next.js mit TypeScript, Tailwind und shadcn/ui aufsetzen, Prisma mit SQLite anbinden, <code>.gitignore</code> und <code>.env.example</code> anlegen. Basis-Layout mit der Hauptnavigation, mobile-first. Startbar, aber noch ohne Funktionen.</p>
+        <h3>Grundgerüst <span class="chip go">erledigt</span></h3>
+        <p>Next.js 15 mit TypeScript, Tailwind v4 und shadcn/ui aufgesetzt, Prisma 7.10 mit SQLite angebunden, <code>.gitignore</code> und <code>.env.example</code> angelegt. Basis-Layout mit Hauptnavigation: Kopfzeile am Desktop, feste Leiste am unteren Rand auf dem Handy. Seiten für alle vier Bereiche vorhanden, noch als Platzhalter. Produktions-Build, Typecheck und Lint laufen fehlerfrei durch.</p>
       </div>
     </div>
 
     <div class="phase">
       <div class="num">01</div>
       <div>
-        <h3>Datenmodell &amp; Nutzerverwaltung <span class="chip">geplant</span></h3>
+        <h3>Datenmodell &amp; Nutzerverwaltung <span class="chip hold">als Nächstes</span></h3>
         <p>Vollständiges Prisma-Schema inklusive der sechs Korrekturen unten. Namenseingabe beim ersten Öffnen, Nutzerwechsel, Session per Cookie. Einstellungen-Seite mit API-Key-Feld pro Nutzer. Seed- und Reset-Skripte getrennt von den Migrationen.</p>
       </div>
     </div>
@@ -299,6 +341,34 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
 </section>
 
 <section>
+  <h2>Gestaltung</h2>
+  <p class="h2sub">Warm und erdig statt clean-steril</p>
+  <p>Grundlage ist das Moodboard von Sarah, gesichert unter <code>docs/moodboard.html</code>. Die Farben liegen nicht als lose Hex-Werte im Code, sondern als Design-Tokens in <code>src/app/globals.css</code> – darauf setzt shadcn/ui auf, sodass jede neue Komponente die Palette automatisch erbt.</p>
+
+  <div class="palette">
+    <div class="sw"><div class="fill" style="background:#4A6B4A"></div><div class="cap"><div class="nm">Moos</div><div class="hx">#4A6B4A</div></div></div>
+    <div class="sw"><div class="fill" style="background:#7DA07D"></div><div class="cap"><div class="nm">Moos hell</div><div class="hx">#7DA07D</div></div></div>
+    <div class="sw"><div class="fill" style="background:#D97B4C"></div><div class="cap"><div class="nm">Terrakotta</div><div class="hx">#D97B4C</div></div></div>
+    <div class="sw"><div class="fill" style="background:#E8B94B"></div><div class="cap"><div class="nm">Senfgelb</div><div class="hx">#E8B94B</div></div></div>
+    <div class="sw"><div class="fill" style="background:#FBF6EE"></div><div class="cap"><div class="nm">Creme</div><div class="hx">#FBF6EE</div></div></div>
+    <div class="sw"><div class="fill" style="background:#2B2A26"></div><div class="cap"><div class="nm">Tinte</div><div class="hx">#2B2A26</div></div></div>
+  </div>
+
+  <p style="margin-top:24px"><strong>Schriften:</strong> Fraunces für Überschriften, Rezeptnamen und die Wortmarke – serifenbetont und leicht editorial. Work Sans für alles Übrige, weil es in kleinen Größen gut lesbar bleibt, was bei Zutatenlisten zählt. Beide über <code>next/font</code> eingebunden, also lokal ausgeliefert statt vom Google-Server.</p>
+
+  <p><strong>Bildmarke:</strong> Kartennadel mit einem Punkt als Teller-Andeutung – verbindet „Map“ mit „Meal“. Quelle ist <code>assets/logo-mark.svg</code>; <code>npm run icons</code> erzeugt daraus die PNG-Dateien für Kopfzeile, Browser-Tab und iOS-Homescreen. Die Wortmarke bleibt echter Text, damit sie scharf bleibt und im Dunkelmodus mitgeht.</p>
+
+  <p><strong>Chips im Plan:</strong> Jeder Mahlzeiten-Slot hat eine eigene Farbe, damit ein Tag auf einen Blick lesbar ist. Vorschläge sind bewusst farblos und gestrichelt – dieselbe Unterscheidung wie in diesem Dossier.</p>
+
+  <div class="stack" style="margin-top:20px">
+    <div class="item risk">
+      <h3>Dunkelmodus ist abgeleitet, nicht abgestimmt <span class="tag warn">bitte prüfen</span></h3>
+      <p>Das Moodboard definiert nur ein helles Thema. Für den Dunkelmodus habe ich aus derselben Palette eine Variante abgeleitet: warmes Braunschwarz statt Neutralgrau, helles Moos als tragender Akzent, Terrakotta bleibt der Signalton. Schau sie dir an und sag, ob sie so bleiben soll.</p>
+    </div>
+  </div>
+</section>
+
+<section>
   <h2>Datenmodell</h2>
   <p class="h2sub">Sechs Korrekturen gegenüber dem Konzept</p>
   <p>Das Datenmodell aus Abschnitt 7 des Konzepts trägt weitgehend. An sechs Stellen deckt es die beschriebenen Funktionen aber noch nicht ab. Alle Änderungen sind additiv, das Konzept bricht dadurch nicht.</p>
@@ -335,14 +405,6 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       <h3>KI-Freitextfeld im Plan <span class="tag">Backlog</span></h3>
       <p>Eingaben wie „Ich bin Dienstag nicht da“ oder „diese Woche gerne Pasta“ werden interpretiert: Marker werden gesetzt, passende Rezepte vorgeschlagen.</p>
     </div>
-    <div class="item note">
-      <h3>Logo &amp; Favicon <span class="tag note">vorgemerkt</span></h3>
-      <p>MealMap braucht eine eigene Bildmarke: ein Logo für den Kopfbereich und ein Favicon für den Browser-Tab, beides auf hellem und dunklem Hintergrund lesbar. Wird angegangen, sobald das Grundgerüst steht und man sieht, wie viel Platz im Header ist.</p>
-    </div>
-    <div class="item note">
-      <h3>Hinweis auf Claude im Footer <span class="tag note">vorgemerkt</span></h3>
-      <p>Im Footer der Webapp soll stehen, dass die App mit Claude gebaut wurde. Kommt ins Basis-Layout, spätestens wenn der Footer gestaltet wird.</p>
-    </div>
     <div class="item">
       <h3>Platz für neue Ideen</h3>
       <p>Alles, was dir während der Umsetzung einfällt, kommt hier rein — einmal erwähnen reicht, ich trage es nach und veröffentliche das Dossier neu.</p>
@@ -357,6 +419,10 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
     <div class="item risk">
       <h3>API-Key liegt im Klartext <span class="tag warn">vor Livegang</span></h3>
       <p>Der Key wird serverseitig am Nutzer gespeichert, sonst könnte der Server die Imports nicht ausführen. In der lokalen SQLite-Datei ist das unkritisch. Sobald die App online geht, sollte er verschlüsselt abgelegt werden.</p>
+    </div>
+    <div class="item risk">
+      <h3>npm audit meldet postcss <span class="tag warn">Entscheidung offen</span></h3>
+      <p>Next 15.5.25 bringt intern eine postcss-Version mit, für die Sicherheitshinweise vorliegen. Betroffen ist die Build-Kette, nicht die laufende App; lokal ist das unkritisch. Bereinigen ließe es sich nur durch den Sprung auf Next 16 — ein Hauptversionswechsel, den ich nicht ungefragt mache. Spätestens vor dem Livegang entscheiden.</p>
     </div>
     <div class="item risk">
       <h3>Kosten pro Import <span class="tag warn">Phase 3</span></h3>
@@ -377,15 +443,37 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
   <h2>Umgebung</h2>
   <p class="h2sub">Geprüft am 12.09.2026</p>
   <dl class="spec">
-    <dt>Node</dt><dd class="mono">v25.9.0 <span class="ok">ausreichend für Next.js 15</span></dd>
+    <dt>Node</dt><dd class="mono">v25.9.0</dd>
     <dt>npm</dt><dd class="mono">11.12.1</dd>
-    <dt>Git</dt><dd class="mono">2.50.1 — Projektordner ist noch kein Repository</dd>
+    <dt>Git</dt><dd class="mono">2.50.1 — Repository von Sarah angelegt</dd>
+    <dt>Next.js</dt><dd class="mono">15.5.25 mit React 19.1, Tailwind v4, shadcn/ui</dd>
+    <dt>Prisma</dt><dd class="mono">7.10.0 mit better-sqlite3-Adapter</dd>
     <dt>Nicht da</dt><dd class="mono">Docker, pnpm, bun — werden auch nicht gebraucht</dd>
     <dt>MAMP</dt><dd class="mono"><span class="ok">läuft</span> — Apache auf :8888, MySQL 8 auf :8889, PHP 8.3.30</dd>
     <dt>DocumentRoot</dt><dd class="mono">/Users/sarahschoenthaler/Sites</dd>
-    <dt>Port 3000</dt><dd class="mono">frei — hier wird MealMap laufen</dd>
+    <dt>Port 3000</dt><dd class="mono"><span class="ok">MealMap</span> — Next.js</dd>
+    <dt>Port 3001</dt><dd class="mono">BrowserSync-Proxy, nur bei <code>npm run sync</code></dd>
   </dl>
   <p style="margin-top:20px">MealMap braucht MAMP nicht: Next.js bringt seinen eigenen Server mit und läuft über Node auf Port 3000, Apache und MySQL bleiben davon unberührt. Weil der Projektordner im DocumentRoot liegt, wäre er theoretisch auch über <code>localhost:8888/MealMap</code> erreichbar — dort käme allerdings nur der nackte Quellcode heraus, nicht die App. MAMP kann also weiterlaufen, sollte aber nicht als Einstieg benutzt werden.</p>
+</section>
+
+<section>
+  <h2>Befehle</h2>
+  <p class="h2sub">Was du im Projektordner ausführen kannst</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Befehl</th><th>Was passiert</th></tr></thead>
+      <tbody>
+        <tr><td style="width:auto"><code>npm run dev</code></td><td>Startet Next.js auf <code>localhost:3000</code>. Der normale Weg beim Entwickeln.</td></tr>
+        <tr><td style="width:auto"><code>npm run sync</code></td><td>Startet Next plus BrowserSync auf <code>localhost:3001</code>. Gibt zusätzlich eine Netzwerk-URL aus, mit der du die App am Handy öffnest; Scrollen und Klicken laufen dann auf allen Geräten synchron.</td></tr>
+        <tr><td style="width:auto"><code>npm run icons</code></td><td>Erzeugt Logo-PNG, Favicon und Homescreen-Icon neu aus <code>assets/logo-mark.svg</code>. Nur nötig, wenn du die Bildmarke änderst.</td></tr>
+        <tr><td style="width:auto"><code>npm run build</code></td><td>Produktions-Build, prüft zugleich Typen und Lint-Regeln.</td></tr>
+        <tr><td style="width:auto"><code>npm run db:migrate</code></td><td>Legt eine neue Migration an und wendet sie auf die lokale Datenbank an.</td></tr>
+        <tr><td style="width:auto"><code>npm run db:studio</code></td><td>Öffnet Prisma Studio, um in die Datenbank zu schauen.</td></tr>
+        <tr><td style="width:auto"><code>npm run db:reset</code></td><td>Setzt die lokale Datenbank vollständig zurück.</td></tr>
+      </tbody>
+    </table>
+  </div>
 </section>
 
 <section>
@@ -401,6 +489,6 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
   </div>
 </section>
 
-<footer>Dossier zu MealMap &middot; letzte Aktualisierung 12.09.2026 &middot; Datei: docs/dossier.html</footer>
+<footer>Dossier zu MealMap &middot; letzte Aktualisierung 12.09.2026, 10:15 Uhr &middot; Datei: docs/dossier.html</footer>
 
 </div>
