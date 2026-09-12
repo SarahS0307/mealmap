@@ -203,13 +203,13 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
 <div class="wrap">
 
 <header>
-  <p class="eyebrow">Projektdossier &middot; Stand 12. September 2026, 11:50 Uhr</p>
+  <p class="eyebrow">Projektdossier &middot; Stand 12. September 2026, 17:50 Uhr</p>
   <h1>MealMap</h1>
   <p class="lede">Rezepte, Meal-Prep-Plan und Einkaufsliste in einer Webapp. Dieses Dossier hält fest, was entschieden ist, was gebaut wird und was noch offen liegt.</p>
   <div class="meta">
     <span><b>Ordner</b> ~/Sites/MealMap</span>
     <span><b>Quelle</b> mealmap-konzept.md</span>
-    <span><b>Phase</b> 0 erledigt, 1 offen</span>
+    <span><b>Phase</b> 0 und 1 erledigt</span>
     <span><b>Lokal</b> localhost:3000</span>
   </div>
 </header>
@@ -222,13 +222,49 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
 </section>
 
 <section>
+  <h2>Stand &amp; Weiterarbeiten</h2>
+  <p class="h2sub">Alles, was man zum Anknüpfen wissen muss</p>
+  <p>Dieser Abschnitt ist bewusst redundant: Er fasst zusammen, was an anderer Stelle ausführlicher steht, damit nach einer Unterbrechung ohne Rückfragen weitergearbeitet werden kann.</p>
+
+  <div class="stack">
+    <div class="item note">
+      <h3>Wo das Projekt steht</h3>
+      <p><strong>Phase 0 und 1 sind fertig und geprüft.</strong> Grundgerüst, Design nach Moodboard, Datenbankschema mit zwölf Tabellen, PHP-API mit acht Endpunkten, Nutzerverwaltung mit Namensabfrage als Zugangsschranke. <strong>Als Nächstes: Phase 2 — Rezepte anlegen, Kategorien, Liste, Detailansicht, Bewertung.</strong></p>
+    </div>
+
+    <div class="item note">
+      <h3>Was man über die Architektur wissen muss</h3>
+      <p>Ziel ist <strong>Strato Hosting Starter</strong>: PHP und MySQL, <strong>kein Node</strong>. Deshalb erzeugt Next.js einen rein statischen Export, und alle Daten laufen über die PHP-API in <code>api/</code>. Es gibt kein Prisma, kein SQLite, keine Server-Komponenten mit Datenbankzugriff — die Oberfläche spricht ausschließlich über <code>src/lib/api.ts</code> mit dem Server.</p>
+    </div>
+
+    <div class="item note">
+      <h3>Die drei Stolpersteine</h3>
+      <p><strong>1.</strong> Lokal liegt die App unter <code>/MealMap</code>, live an der Wurzel. Deshalb setzen <code>preview</code> und <code>bundle</code> <code>basePath</code> unterschiedlich. Den Server-Ordner immer mit <code>npm run bundle</code> bauen, nie mit <code>preview</code>.<br>
+      <strong>2.</strong> <code>npm run build</code> nicht starten, während der Entwicklungsserver läuft — beide schreiben nach <code>.next</code>.<br>
+      <strong>3.</strong> Nach jeder Änderung muss <code>npm run preview</code> neu laufen, sonst zeigt <code>localhost:8888/MealMap/</code> den alten Stand.<br>
+      <strong>4.</strong> Dateien aus <code>public/</code> immer über <code>asset()</code> aus <code>src/lib/paths.ts</code> ansprechen. <code>next/image</code> setzt bei abgeschalteter Bildoptimierung <em>kein</em> <code>basePath</code> davor — ein direkter Pfad funktioniert live, bricht aber lokal.</p>
+    </div>
+
+    <div class="item note">
+      <h3>Arbeitsweise mit Sarah</h3>
+      <p>Phase für Phase, nach jeder Phase auf Freigabe warten. Rückfragen als Auswahl mit erklärten Antwortmöglichkeiten, nie als offene Frage. Keine Git-Befehle — auch keine lesenden; stattdessen mitteilen, was zu committen ist. Jeden Auftrag zuerst darauf prüfen, ob die Umsetzung <em>jetzt</em> sinnvoll ist; wenn nein, hier ins Dossier statt bauen. Dieses Dossier nach jeder Änderung unaufgefordert nachziehen und neu veröffentlichen.</p>
+    </div>
+
+    <div class="item note">
+      <h3>Was als Nächstes ansteht, außerhalb der Phasen</h3>
+      <p>Drei Dinge brauchen Sarahs Entscheidung, keines blockiert: der Blick auf den Dunkelmodus, die Frage nach Next 16 wegen der postcss-Hinweise, und vor dem Livegang die geschlossene Namensliste samt Zugriffsschutz. Alle drei stehen unten unter „Offene Punkte“.</p>
+    </div>
+  </div>
+</section>
+
+<section>
   <h2>Links</h2>
   <p class="h2sub">Wo die App gerade läuft</p>
   <dl class="linkbox">
-    <dt>Am Rechner</dt><dd>http://localhost:3000<span class="hint">Next.js direkt. Läuft nach <code>npm run dev</code>.</span></dd>
-    <dt>Mit BrowserSync</dt><dd>http://localhost:3001<span class="hint">Proxy mit Geräte-Mirroring. Läuft nach <code>npm run sync</code>.</span></dd>
-    <dt>Am Handy</dt><dd>http://192.168.178.38:3001<span class="hint">Nur im selben WLAN und nur solange <code>npm run sync</code> läuft. Ändert sich, wenn der Rechner eine neue IP bekommt – die aktuelle steht beim Start im Log.</span></dd>
-    <dt>Dossier lokal</dt><dd>http://localhost:8888/MealMap/docs/dossier.html<span class="hint">Über MAMP, unabhängig von der App.</span></dd>
+    <dt>Wie im Livebetrieb</dt><dd>http://localhost:8888/MealMap/<span class="hint">Alles über Apache unter einer Adresse, kein CORS, MySQL dahinter. Vorher <code>npm run preview</code> ausführen — nach jeder Änderung erneut.</span></dd>
+    <dt>Schnellmodus</dt><dd>http://localhost:3000<span class="hint">Next.js mit sofortigem Nachladen, API über Port 8888. Bequemer beim Bauen, weicht aber vom Livebetrieb ab. Läuft nach <code>npm run dev</code>.</span></dd>
+    <dt>Am Handy</dt><dd>http://192.168.178.38:3001<span class="hint">Schnellmodus mit BrowserSync (<code>npm run sync</code>). Nur im selben WLAN; die IP steht beim Start im Log.</span></dd>
+    <dt>Später live</dt><dd>http://mealplan.sarah-schoenthaler.de<span class="hint">Subdomain bei Strato. Dorthin wandert der Inhalt von <code>dist/</code>.</span></dd>
   </dl>
 </section>
 
@@ -238,8 +274,8 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
   <dl class="decisions">
     <div class="dec">
       <dt>Stack</dt>
-      <dd><strong>Next.js 15.5.25, React 19.1, TypeScript, Prisma 7.10, SQLite</strong>
-      <span class="why">Ein Projekt für Frontend und Backend, Datenbank als lokale Datei. Später ohne Umbau auf Postgres umstellbar — ab Prisma 7 wird dafür nur der Treiber-Adapter in <code>src/lib/prisma.ts</code> getauscht.</span></dd>
+      <dd><strong>Next.js als statischer Export + PHP-API + MySQL</strong>
+      <span class="why">Umgestellt am 12.09.2026, nachdem feststand, dass das Ziel <strong>Strato Hosting Starter</strong> ist: klassischer Webspace mit PHP und MySQL, aber ohne Node. Next.js erzeugt deshalb reines HTML, CSS und JavaScript; die Daten kommen über eine PHP-API im Ordner <code>/api</code>. Prisma und SQLite sind entfallen — das durchdachte Datenmodell lebt unverändert als <code>api/schema.sql</code> weiter.</span></dd>
     </div>
     <div class="dec">
       <dt>Oberfläche</dt>
@@ -257,9 +293,30 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       <span class="why">Testdaten entstehen ausschließlich über ein Seed-Skript, nie über Migrationen. Die Live-Instanz startet dadurch automatisch mit leerer Datenbank.</span></dd>
     </div>
     <div class="dec">
+      <dt>Warum ein Server</dt>
+      <dd><strong>Rein clientseitig ginge es nicht</strong>
+      <span class="why">Getrennte Nutzer, dieselben Daten auf Handy und Rechner, nur hinterlegte Namen, Spam-Schutz — und vor allem der API-Schlüssel, der niemals im Browser landen darf. Die PHP-API gibt ihn nach außen nie zurück, sondern nur die Auskunft, ob einer hinterlegt ist.</span></dd>
+    </div>
+    <div class="dec">
+      <dt>Zieladresse</dt>
+      <dd><strong>mealplan.sarah-schoenthaler.de</strong>
+      <span class="why">Eigene Subdomain bei Strato. Die App liegt damit im Wurzelverzeichnis, die API schlicht unter <code>/api</code> — keine Unterordner-Pfade nötig.</span></dd>
+    </div>
+    <div class="dec">
+      <dt>Lokale Umgebung</dt>
+      <dd><strong>Zwei Wege, bewusst beide</strong>
+      <span class="why"><code>npm run preview</code> baut den Ordner <code>dist/</code>; eine <code>.htaccess</code> im Projektstamm liefert ihn unter <code>localhost:8888/MealMap/</code> aus — dieselbe Adresse, die Sarah von ihren übrigen Projekten kennt. Daneben bleibt <code>npm run dev</code> für schnelles Arbeiten mit sofortigem Nachladen.</span>
+      <span class="why"><strong>Der Preis:</strong> Lokal liegt die App im Unterordner <code>/MealMap</code>, live an der Wurzel der Subdomain. Der Pfad steuert deshalb <code>basePath</code> und wird beim Bauen gesetzt — <code>preview</code> mit <code>/MealMap</code>, <code>bundle</code> ohne. Lokaler und Live-Build sind damit nicht mehr identisch; reine Pfadfehler könnten erst auf dem Server auffallen. Beide Varianten wurden gegengeprüft.</span></dd>
+    </div>
+    <div class="dec">
+      <dt>Der Ordner zum Hochladen</dt>
+      <dd><strong><code>dist/</code>, erzeugt mit <code>npm run bundle</code></strong>
+      <span class="why">Enthält die gebaute Oberfläche im Wurzelverzeichnis und <code>api/</code> daneben — genau die Struktur, die auf die Subdomain gehört. Die Zugangsdaten (<code>api/config.php</code>) bleiben bewusst draußen und werden auf dem Server aus der Vorlage angelegt.</span></dd>
+    </div>
+    <div class="dec">
       <dt>Gestaltung</dt>
       <dd><strong>Moodboard von Sarah, umgesetzt als Design-Tokens</strong>
-      <span class="why">Moos, Terrakotta, Senfgelb und Creme, dazu Fraunces und Work Sans. Liegt als Token-Satz in <code>globals.css</code>, nicht verstreut im Code — ein Farbwechsel trifft damit die ganze App auf einmal.</span></dd>
+      <span class="why">Moos, Terrakotta, Senfgelb und Creme, dazu Outfit und Work Sans — durchgehend serifenlos. Liegt als Token-Satz in <code>globals.css</code>, nicht verstreut im Code: ein Farbwechsel trifft damit die ganze App auf einmal. In den Einstellungen lässt sich zwischen Hell, Dunkel und Geräteeinstellung wählen.</span></dd>
     </div>
     <div class="dec">
       <dt>Entwicklungsserver</dt>
@@ -274,7 +331,7 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
     <div class="dec">
       <dt>Was ins Repo gehört</dt>
       <dd><strong>Alles außer Generiertem, Installiertem und Geheimem</strong>
-      <span class="why">Nicht im Repo: <code>node_modules</code>, <code>.next</code>, <code>.env</code>, der generierte Prisma-Client und die lokale Datenbank. Alles davon entsteht auf einem neuen Rechner von selbst — geprüft durch einen nachgebauten Klon, der nur aus den versionierten Dateien besteht und fehlerfrei baut.</span></dd>
+      <span class="why">Nicht im Repo: <code>node_modules</code>, die erzeugten Ordner <code>.next</code>, <code>out</code> und <code>dist</code>, sowie <code>api/config.php</code> mit den Zugangsdaten. Im Repo bleiben dagegen <code>.env.example</code> und <code>.env.development</code> — beide enthalten keine Geheimnisse und werden auf jedem Rechner gebraucht.</span></dd>
     </div>
     <div class="dec">
       <dt>Versionierung</dt>
@@ -293,22 +350,22 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       <div class="num">00</div>
       <div>
         <h3>Grundgerüst <span class="chip go">erledigt</span></h3>
-        <p>Next.js 15 mit TypeScript, Tailwind v4 und shadcn/ui aufgesetzt, Prisma 7.10 mit SQLite angebunden, <code>.gitignore</code> und <code>.env.example</code> angelegt. Basis-Layout mit Hauptnavigation: Kopfzeile am Desktop, feste Leiste am unteren Rand auf dem Handy. Seiten für alle vier Bereiche vorhanden, noch als Platzhalter. Produktions-Build, Typecheck und Lint laufen fehlerfrei durch.</p>
+        <p>Next.js 15 mit TypeScript, Tailwind v4 und shadcn/ui aufgesetzt, <code>.gitignore</code> und <code>.env.example</code> angelegt. (Die zunächst gewählte Anbindung über Prisma und SQLite wurde später durch die PHP-API ersetzt, siehe Entscheidungen.) Basis-Layout mit Hauptnavigation: Kopfzeile am Desktop, feste Leiste am unteren Rand auf dem Handy. Seiten für alle vier Bereiche vorhanden, noch als Platzhalter. Produktions-Build, Typecheck und Lint laufen fehlerfrei durch.</p>
       </div>
     </div>
 
-    <div class="phase">
+    <div class="phase done">
       <div class="num">01</div>
       <div>
-        <h3>Datenmodell &amp; Nutzerverwaltung <span class="chip hold">als Nächstes</span></h3>
-        <p>Vollständiges Prisma-Schema inklusive der sechs Korrekturen unten. Namenseingabe beim ersten Öffnen, Nutzerwechsel, Session per Cookie. Einstellungen-Seite mit API-Key-Feld pro Nutzer. Seed- und Reset-Skripte getrennt von den Migrationen.</p>
+        <h3>Datenmodell &amp; Nutzerverwaltung <span class="chip go">erledigt</span></h3>
+        <p>Datenbankschema mit zwölf Tabellen und allen Korrekturen, in MySQL angelegt. PHP-API mit acht durchgetesteten Endpunkten. Nutzerwechsel direkt in der Kopfzeile, nicht nur in den Einstellungen. Umschalter für Hell, Dunkel und Geräteeinstellung. Namensabfrage versperrt die App, solange niemand angemeldet ist; Session per Cookie, Nutzerwechsel und Abmelden über die Einstellungen. API-Schlüssel pro Nutzer hinterlegbar. Seed-Skript getrennt von den Migrationen. Die Zutaten-Normalisierung fasst in der Stichprobe 12 von 12 Schreibweisen korrekt zusammen, ohne Kollisionen.</p>
       </div>
     </div>
 
     <div class="phase">
       <div class="num">02</div>
       <div>
-        <h3>Rezepte, Basis <span class="chip">geplant</span></h3>
+        <h3>Rezepte, Basis <span class="chip hold">als Nächstes</span></h3>
         <p>Rezept per Text anlegen, Kategorien anlegen, umbenennen und löschen inklusive Umzugs-Dialog für betroffene Rezepte. Rezeptliste, Detailansicht, Bearbeiten, Sternebewertung mit Kommentar, Notizfeld, Einfrierbar-Kennzeichen.</p>
       </div>
     </div>
@@ -371,7 +428,7 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
     <div class="sw"><div class="fill" style="background:#2B2A26"></div><div class="cap"><div class="nm">Tinte</div><div class="hx">#2B2A26</div></div></div>
   </div>
 
-  <p style="margin-top:24px"><strong>Schriften:</strong> Fraunces für Überschriften, Rezeptnamen und die Wortmarke – serifenbetont und leicht editorial. Work Sans für alles Übrige, weil es in kleinen Größen gut lesbar bleibt, was bei Zutatenlisten zählt. Beide über <code>next/font</code> eingebunden, also lokal ausgeliefert statt vom Google-Server.</p>
+  <p style="margin-top:24px"><strong>Schriften — durchgehend serifenlos.</strong> Outfit für Überschriften, Rezeptnamen und die Wortmarke: geometrisch, warm und freundlich. Work Sans für alles Übrige, weil es in kleinen Größen gut lesbar bleibt, was bei Zutatenlisten zählt. Beide über <code>next/font</code> eingebunden, also lokal ausgeliefert statt vom Google-Server. Das Moodboard wurde auf diese Vorgabe nachgezogen.</p>
 
   <p><strong>Bildmarke:</strong> Kartennadel mit einem Punkt als Teller-Andeutung – verbindet „Map“ mit „Meal“. Quelle ist <code>assets/logo-mark.svg</code>; <code>npm run icons</code> erzeugt daraus die PNG-Dateien für Kopfzeile, Browser-Tab und iOS-Homescreen. Die Wortmarke bleibt echter Text, damit sie scharf bleibt und im Dunkelmodus mitgeht.</p>
 
@@ -380,7 +437,7 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
   <div class="stack" style="margin-top:20px">
     <div class="item risk">
       <h3>Dunkelmodus ist abgeleitet, nicht abgestimmt <span class="tag warn">bitte prüfen</span></h3>
-      <p>Das Moodboard definiert nur ein helles Thema. Für den Dunkelmodus wurde aus derselben Palette eine Variante abgeleitet: warmes Braunschwarz statt Neutralgrau, helles Moos als tragender Akzent, Terrakotta bleibt der Signalton. Die App folgt dabei der Einstellung des Betriebssystems — einen Umschalter in der Oberfläche gibt es bewusst noch nicht. Schau dir die Variante an und sag, ob sie so bleiben soll.</p>
+      <p>Das Moodboard definiert nur ein helles Thema. Für den Dunkelmodus wurde aus derselben Palette eine Variante abgeleitet: warmes Braunschwarz statt Neutralgrau, helles Moos als tragender Akzent, Terrakotta bleibt der Signalton. In den Einstellungen lässt sich zwischen <em>Hell</em>, <em>Dunkel</em> und <em>Wie das Gerät</em> wählen; die Wahl gilt pro Browser, nicht pro Konto. Schau dir die dunkle Variante an und sag, ob sie so bleiben soll.</p>
     </div>
   </div>
 </section>
@@ -388,7 +445,8 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
 <section>
   <h2>Datenmodell</h2>
   <p class="h2sub">Sechs Korrekturen gegenüber dem Konzept</p>
-  <p>Das Datenmodell aus Abschnitt 7 des Konzepts trägt weitgehend. An sechs Stellen deckt es die beschriebenen Funktionen aber noch nicht ab. Alle Änderungen sind additiv, das Konzept bricht dadurch nicht.</p>
+  <p>Das Datenmodell aus Abschnitt 7 des Konzepts trägt weitgehend. An sechs Stellen deckt es die beschriebenen Funktionen aber noch nicht ab. Alle Änderungen sind additiv, das Konzept bricht dadurch nicht. Umgesetzt als <code>api/schema.sql</code> mit zwölf Tabellen.</p>
+  <p><strong>Nachtrag zu Korrektur 2:</strong> Beim erneuten Lesen von Konzept 5.2 steht dort, dass der Abwesenheits-Marker <em>Mahlzeiten</em> kennzeichnet, nicht ganze Tage. Nur der Einkaufstermin ist eine Tages-Eigenschaft. So ist es gebaut: <code>plan_days</code> trägt den Einkaufstag, <code>plan_entries</code> die Abwesenheit.</p>
   <div class="tablewrap">
     <table>
       <thead><tr><th>#</th><th>Problem</th><th>Lösung</th></tr></thead>
@@ -422,6 +480,33 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       <h3>KI-Freitextfeld im Plan <span class="tag">Backlog</span></h3>
       <p>Eingaben wie „Ich bin Dienstag nicht da“ oder „diese Woche gerne Pasta“ werden interpretiert: Marker werden gesetzt, passende Rezepte vorgeschlagen.</p>
     </div>
+    <div class="item note">
+      <h3>Kein Selbstanlegen von Konten <span class="tag note">vor dem Livegang</span></h3>
+      <p>Heute legt jeder eingegebene Name automatisch einen neuen Nutzer an. Das soll aufhören: <strong>Anmelden heißt nachschlagen, nie anlegen.</strong> Die vorhandene Tabelle <code>users</code> ist zugleich die Berechtigungsliste — wer dort nicht steht, kommt nicht rein. Gepflegt wird sie ausschließlich von Sarah direkt in der Datenbank (phpMyAdmin), nicht über die Oberfläche.</p>
+      <p style="margin-top:10px"><strong>Umzusetzen:</strong> In <code>api/routes/session.php</code> den <code>INSERT</code>-Zweig entfernen und bei unbekanntem Namen mit 403 antworten. Die Felder <code>closed_signup</code> und <code>allowed_names</code> in <code>api/config.php</code> entfallen dabei — sie waren ein früherer, schwächerer Entwurf mit einer Namensliste in der Konfigurationsdatei. Wichtig: Auf einer frischen Instanz muss vorher mindestens ein Nutzer in der Tabelle stehen, sonst sperrt sich die App selbst aus. Lokal erledigt das <code>npm run db:seed</code>, live ein Eintrag über phpMyAdmin.</p>
+      <p style="margin-top:10px"><strong>Zeitpunkt:</strong> Sarah hat entschieden, das erst vor dem Livegang umzusetzen. Während der Entwicklung bleibt das Anlegen über die Oberfläche möglich, was beim Bauen der Rezept-Module praktisch ist.</p>
+      <p style="margin-top:10px"><strong>Frühere Einschätzung korrigiert:</strong> Zunächst war vermerkt, dass eine geschlossene Liste die Entwicklung blockiert. Das galt für den Entwurf mit Konfigurationsdatei. Mit der <code>users</code>-Tabelle als Liste blockiert technisch nichts — das Seed-Skript liefert den ersten Nutzer.</p>
+    </div>
+    <div class="item note">
+      <h3>Spam- und Zugriffsschutz <span class="tag note">vor dem Livegang</span></h3>
+      <p>Damit Unbefugte die öffentlich erreichbare Adresse nicht einfach durchprobieren können: Begrenzung der Anmeldeversuche pro Adresse und eine zusätzliche Hürde vor der Namensabfrage. Lässt sich erst in der Live-Umgebung sinnvoll bauen und prüfen.</p>
+    </div>
+    <div class="item note">
+      <h3>Fertiger Ordner für den Live-Server <span class="tag note">zum Schluss</span></h3>
+      <p>Am Ende legt Claude einen Ordner auf den Schreibtisch, der alles enthält, was auf den Live-Server hochgeladen wird. Wichtig dabei: MealMap ist kein PHP-Projekt, sondern braucht Node auf dem Server – siehe offener Punkt weiter unten.</p>
+    </div>
+    <div class="item note">
+      <h3>Rezepte aus TikTok teilen <span class="tag note">Phase 3</span></h3>
+      <p>Ein Video direkt aus TikTok an MealMap weitergeben, statt den Link von Hand zu kopieren. Das Video wird als eingebettete Quelle am Rezept gespeichert, der Inhalt in Textform daneben. Gehört zum Import-Modul und wird zusammen mit Bild, PDF und Webseiten-Link gebaut.</p>
+    </div>
+    <div class="item note">
+      <h3>Mehrere Rezepte in einer Quelle <span class="tag note">Phase 3</span></h3>
+      <p>Ein Video oder ein PDF enthält oft nicht ein Rezept, sondern drei. Der Import darf deshalb nicht „eine Datei, ein Rezept“ sein: Er muss erkennen, wie viele Rezepte in der Quelle stecken, sie einzeln auftrennen und jedes davon zur Bestätigung vorlegen — mit der Möglichkeit, einzelne zu verwerfen. Das betrifft den Zuschnitt des Imports, nicht nur eine Zusatzfunktion, und ist vor dem Bau von Phase 3 einzuplanen.</p>
+    </div>
+    <div class="item note">
+      <h3>Startseite wird zur Rezeptaufnahme <span class="tag note">Phase 2/3</span></h3>
+      <p>Die heutigen drei Kacheln auf der Startseite sind ein Platzhalter. Später soll dort das Hochladen und Verwalten von Rezepten stattfinden — die Startseite wird damit die Arbeitsfläche, an der neue Rezepte hereinkommen. <strong>Die Rezeptsammlung unter <code>/rezepte</code> bleibt davon unberührt</strong> und dient weiterhin dem Durchsehen, Filtern und Öffnen vorhandener Rezepte. Umsetzbar erst, wenn es Rezepte und einen Import gibt.</p>
+    </div>
     <div class="item">
       <h3>Platz für neue Ideen</h3>
       <p>Alles, was dir während der Umsetzung einfällt, kommt hier rein — einmal erwähnen reicht, ich trage es nach und veröffentliche das Dossier neu.</p>
@@ -435,7 +520,16 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
   <div class="stack">
     <div class="item risk">
       <h3>API-Key liegt im Klartext <span class="tag warn">vor Livegang</span></h3>
-      <p>Der Key wird serverseitig am Nutzer gespeichert, sonst könnte der Server die Imports nicht ausführen. In der lokalen SQLite-Datei ist das unkritisch. Sobald die App online geht, sollte er verschlüsselt abgelegt werden.</p>
+      <p>Der Key wird serverseitig am Nutzer gespeichert, sonst könnte der Server die Imports nicht ausführen. In der lokalen MySQL-Datenbank ist das unkritisch. Sobald die App online geht, sollte er verschlüsselt abgelegt werden.</p>
+    </div>
+    <div class="item risk">
+      <h3>Strato: welches Produkt? <span class="tag warn">Antwort nötig</span></h3>
+      <p>MealMap ist eine Node-Anwendung mit Datenbank, kein statisches HTML und kein PHP. Das <strong>klassische Strato-Webhosting</strong> (FTP, PHP, MySQL) kann sie deshalb <strong>nicht ausführen</strong> – es ist auf PHP ausgelegt und gibt keinen Root-Zugriff. Ein <strong>Strato V-Server oder Dedicated Server</strong> kann es: volle Rechte, Node installierbar, Next.js ausdrücklich unterstützt. Strato empfiehlt dafür ab 4 GB RAM.</p>
+      <p style="margin-top:10px">Offen ist, welches Produkt vorliegt. Davon hängt ab, wie der Ordner für den Livegang aussieht – und ob gegebenenfalls ein anderer Tarif nötig wird. Sollte nur klassisches Webhosting verfügbar sein, wären die Alternativen: Tarifwechsel bei Strato, ein anderer Anbieter mit Node, oder ein grundsätzlich anderer technischer Ansatz für MealMap.</p>
+    </div>
+    <div class="item risk">
+      <h3>Projektordner war im Netz lesbar <span class="tag warn">behoben</span></h3>
+      <p>Über <code>localhost:8888/MealMap/</code> lieferte Apache den kompletten Quellcode aus — samt <code>.env</code> im Klartext und der ganzen Git-Historie, und das für jeden im selben WLAN. Eine <code>.htaccess</code> im Projektstamm sperrt jetzt versteckte Dateien, Entwicklungsordner und die Verzeichnisauflistung. Die Zugangsdaten der API waren nie betroffen, die waren von Anfang an gesperrt.</p>
     </div>
     <div class="item risk">
       <h3>npm audit meldet postcss <span class="tag warn">Entscheidung offen</span></h3>
@@ -444,6 +538,10 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
     <div class="item risk">
       <h3>Kosten pro Import <span class="tag warn">Phase 3</span></h3>
       <p>Jeder Import aus Bild, PDF oder Link verursacht Kosten über den hinterlegten Key. Ich baue eine Anzeige ein, die vor dem Import sagt, dass jetzt die KI benutzt wird.</p>
+    </div>
+    <div class="item risk">
+      <h3>Zutaten-Normalisierung lag doppelt vor <span class="tag warn">behoben</span></h3>
+      <p>Nach dem Architekturwechsel gab es die Vereinheitlichung von Zutatennamen zweimal: in TypeScript und in PHP. Zwei Fassungen laufen unweigerlich auseinander, und dann fasst die Einkaufsliste falsch zusammen. Es gibt jetzt nur noch <code>api/lib/ingredients.php</code>; die tote TypeScript-Fassung ist entfernt.</p>
     </div>
     <div class="item risk">
       <h3>Einheiten ohne saubere Umrechnung <span class="tag warn">Phase 6</span></h3>
@@ -464,12 +562,15 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
     <dt>npm</dt><dd class="mono">11.12.1</dd>
     <dt>Git</dt><dd class="mono">2.50.1 — Repository von Sarah angelegt</dd>
     <dt>Next.js</dt><dd class="mono">15.5.25 mit React 19.1, Tailwind v4, shadcn/ui</dd>
-    <dt>Prisma</dt><dd class="mono">7.10.0 mit better-sqlite3-Adapter</dd>
+    <dt>Backend</dt><dd class="mono">PHP 8.3 mit PDO, MySQL 8 — lokal über MAMP</dd>
+    <dt>MAMP</dt><dd class="mono">mod_rewrite eingeschaltet — zwingend, sonst antworten die API-Pfade mit 404</dd>
+    <dt>MAMP PRO</dt><dd class="mono">installiert, aber ungenutzt. Nicht öffnen: würde die Verwaltung übernehmen.</dd>
     <dt>Nicht da</dt><dd class="mono">Docker, pnpm, bun — werden auch nicht gebraucht</dd>
     <dt>MAMP</dt><dd class="mono"><span class="ok">läuft</span> — Apache auf :8888, MySQL 8 auf :8889, PHP 8.3.30</dd>
     <dt>DocumentRoot</dt><dd class="mono">/Users/sarahschoenthaler/Sites</dd>
     <dt>Port 3000</dt><dd class="mono"><span class="ok">MealMap</span> — Next.js</dd>
     <dt>Port 3001</dt><dd class="mono">BrowserSync-Proxy, nur bei <code>npm run sync</code></dd>
+    <dt>Port 8888</dt><dd class="mono"><span class="ok">MealMap unter /MealMap/</span> — daneben Sarahs übrige Projekte, unverändert</dd>
   </dl>
   <p style="margin-top:20px">MealMap braucht MAMP nicht: Next.js bringt seinen eigenen Server mit und läuft über Node auf Port 3000, Apache und MySQL bleiben davon unberührt. Weil der Projektordner im DocumentRoot liegt, wäre er theoretisch auch über <code>localhost:8888/MealMap</code> erreichbar — dort käme allerdings nur der nackte Quellcode heraus, nicht die App. MAMP kann also weiterlaufen, sollte aber nicht als Einstieg benutzt werden.</p>
 </section>
@@ -478,10 +579,12 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
   <h2>Befehle</h2>
   <p class="h2sub">Auf einem neuen Rechner starten</p>
   <p>Projekt aus Git holen, in den Ordner wechseln, dann diese drei Zeilen — mehr ist nicht nötig:</p>
-  <pre class="cmd">npm install        <span class="c"># Pakete installieren, erzeugt den Prisma-Client mit</span>
-cp .env.example .env
-npm run dev        <span class="c"># läuft auf http://localhost:3000</span></pre>
-  <p class="setup-note">Der generierte Prisma-Client und die <code>.env</code> liegen bewusst nicht im Repo. Beides entsteht durch diese Zeilen von selbst: <code>npm install</code> ruft über einen <code>postinstall</code>-Schritt automatisch <code>prisma generate</code> auf. Geprüft an einem nachgebauten Klon, der ausschließlich aus den versionierten Dateien besteht und fehlerfrei durchbaut.</p>
+  <pre class="cmd">npm install
+cp api/config.example.php api/config.php   <span class="c"># Zugangsdaten der Datenbank</span>
+npm run db:migrate  <span class="c"># Tabellen in MySQL anlegen</span>
+npm run db:seed     <span class="c"># optional: Beispieldaten</span>
+npm run preview     <span class="c"># http://localhost:8888/MealMap/</span></pre>
+  <p class="setup-note">Voraussetzung ist ein laufender MAMP (Apache und MySQL) sowie eine Datenbank namens <code>mealmap</code>. Die <code>.env</code> und <code>api/config.php</code> liegen bewusst nicht im Repo, weil sie Zugangsdaten enthalten — beide haben eine Vorlage daneben.</p>
 
   <h2 style="margin-top:48px">Befehle</h2>
   <p class="h2sub">Was du im Projektordner ausführen kannst</p>
@@ -491,12 +594,13 @@ npm run dev        <span class="c"># läuft auf http://localhost:3000</span></pr
       <tbody>
         <tr><td style="width:auto"><code>npm run dev</code></td><td>Startet Next.js auf <code>localhost:3000</code>. Der normale Weg beim Entwickeln.</td></tr>
         <tr><td style="width:auto"><code>npm run sync</code></td><td>Startet Next plus BrowserSync auf <code>localhost:3001</code>. Gibt zusätzlich eine Netzwerk-URL aus, mit der du die App am Handy öffnest; Scrollen und Klicken laufen dann auf allen Geräten synchron.</td></tr>
-        <tr><td style="width:auto"><code>npm install</code></td><td>Installiert die Pakete und erzeugt über einen <code>postinstall</code>-Schritt automatisch den Prisma-Client. Auf einem frischen Rechner reicht danach <code>cp .env.example .env</code> und <code>npm run dev</code>.</td></tr>
+        <tr><td style="width:auto"><code>npm install</code></td><td>Installiert die Pakete. Auf einem frischen Rechner danach <code>cp api/config.example.php api/config.php</code>, <code>npm run db:migrate</code> und <code>npm run preview</code>.</td></tr>
+        <tr><td style="width:auto"><code>npm run preview</code></td><td>Baut <code>dist/</code> für den Unterordner <code>/MealMap</code>, mit den lokalen Zugangsdaten. Danach läuft die App unter <code>localhost:8888/MealMap/</code>. Nach jeder Änderung neu ausführen.</td></tr>
+        <tr><td style="width:auto"><code>npm run bundle</code></td><td>Baut <code>dist/</code> <strong>ohne</strong> Zugangsdaten — das ist der Ordner, der auf den Server geht.</td></tr>
         <tr><td style="width:auto"><code>npm run icons</code></td><td>Erzeugt Logo-PNG, Favicon und Homescreen-Icon neu aus <code>assets/logo-mark.svg</code>. Nur nötig, wenn du die Bildmarke änderst.</td></tr>
         <tr><td style="width:auto"><code>npm run build</code></td><td>Produktions-Build, prüft zugleich Typen und Lint-Regeln.</td></tr>
-        <tr><td style="width:auto"><code>npm run db:migrate</code></td><td>Legt eine neue Migration an und wendet sie auf die lokale Datenbank an.</td></tr>
-        <tr><td style="width:auto"><code>npm run db:studio</code></td><td>Öffnet Prisma Studio, um in die Datenbank zu schauen.</td></tr>
-        <tr><td style="width:auto"><code>npm run db:reset</code></td><td>Setzt die lokale Datenbank vollständig zurück.</td></tr>
+        <tr><td style="width:auto"><code>npm run db:migrate</code></td><td>Legt die Tabellen in MySQL an, aus <code>api/schema.sql</code>. Live stattdessen die Datei über phpMyAdmin einspielen.</td></tr>
+        <tr><td style="width:auto"><code>npm run db:seed</code></td><td>Füllt Beispieldaten ein. Bewusst getrennt vom Schema, damit die Live-Instanz leer startet.</td></tr>
       </tbody>
     </table>
   </div>
@@ -511,12 +615,13 @@ npm run dev        <span class="c"># läuft auf http://localhost:3000</span></pr
       <li><strong>Rückfragen in Abfrageform.</strong> Offene Fragen kommen als Auswahl mit erklärten Antwortmöglichkeiten, nicht als Fließtext. Routinemäßige Kleinigkeiten entscheidet Claude selbst und sagt kurz Bescheid.</li>
       <li><strong>Diese beiden Regeln gelten projektübergreifend.</strong> Sie stehen in <code>~/.claude/CLAUDE.md</code> und werden in jeder Claude-Code-Sitzung geladen, unabhängig vom Projektordner.</li>
       <li><strong>Phase für Phase.</strong> Nach jeder Phase wird gestoppt und auf Freigabe gewartet, bevor es weitergeht.</li>
+      <li><strong>Aufträge werden erst auf den Zeitpunkt geprüft.</strong> Vor dem Bauen schätzt Claude ein, ob die Umsetzung jetzt schon sinnvoll ist. Wenn nein, wird sie nicht gebaut, sondern hier im Dossier vermerkt – mit Begründung, wann sie fällig wird.</li>
       <li><strong>Keine Testdaten in Migrationen.</strong> Beispieldaten entstehen nur über <code>npm run db:seed</code>, damit die Live-Datenbank leer startet.</li>
       <li><strong>Dieses Dossier wird mitgeführt.</strong> Entscheidungen, Ideen und offene Punkte kommen hier rein, damit nichts im Chatverlauf verschwindet.</li>
     </ul>
   </div>
 </section>
 
-<footer>Dossier zu MealMap &middot; letzte Aktualisierung 12.09.2026, 11:50 Uhr &middot; Datei: docs/dossier.html</footer>
+<footer>Dossier zu MealMap &middot; letzte Aktualisierung 12.09.2026, 17:50 Uhr &middot; Datei: docs/dossier.html</footer>
 
 </div>

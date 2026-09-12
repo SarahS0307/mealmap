@@ -1,0 +1,33 @@
+# Bindet die App in den MAMP-Ordner ein.
+#
+# Der Projektordner enthält Quellcode, die lauffähige App liegt in dist/.
+# Diese Regeln liefern unter http://localhost:8888/MealMap/ das Bündel aus und
+# halten den Quellcode zugleich unter Verschluss – ohne sie wären .env und die
+# Git-Historie für jeden im selben WLAN lesbar, denn Apache hört auf allen
+# Netzwerkschnittstellen.
+#
+# Das Bündel entsteht mit: npm run preview
+
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Versteckte Dateien und Ordner sperren (.env, .git, .gitignore ...)
+    RewriteRule (^|/)\.(?!well-known/) - [F,L]
+
+    # Entwicklungsordner und Konfigurationsdateien sperren
+    RewriteRule ^(node_modules|\.next|out|src|scripts|assets|docs)(/|$) - [F,L]
+
+    # /MealMap/api zeigt auf die Quelldateien der API. So wirken Änderungen an
+    # den PHP-Dateien sofort, ohne dass neu gebaut werden muss.
+    RewriteRule ^api(/|$) - [L]
+
+    # Alles Übrige kommt aus dem gebauten Bündel.
+    RewriteCond %{REQUEST_URI} !/dist/
+    RewriteRule ^(.*)$ dist/$1 [L]
+</IfModule>
+
+<FilesMatch "^(package(-lock)?\.json|tsconfig\.json|components\.json|.*\.config\.(ts|mjs|js)|gulpfile\.mjs|tsconfig\.tsbuildinfo|README\.md)$">
+    Require all denied
+</FilesMatch>

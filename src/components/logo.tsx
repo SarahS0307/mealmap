@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { asset } from "@/lib/paths";
 
 /**
  * Bildmarke aus dem Moodboard: eine stilisierte Kartennadel („Map") mit einem
@@ -8,11 +9,14 @@ import { cn } from "@/lib/utils";
  * Eingebunden als PNG aus /public. Quelle ist assets/logo-mark.svg – nach einer
  * Änderung dort `npm run icons` ausführen, das erzeugt PNG-Marke, Favicon und
  * Homescreen-Icon in einem Rutsch.
+ *
+ * Der Pfad läuft über asset(), weil next/image bei abgeschalteter
+ * Bildoptimierung kein basePath voranstellt.
  */
 export function LogoMark({ className }: { className?: string }) {
   return (
     <Image
-      src="/logo-mark.png"
+      src={asset("/logo-mark.png")}
       alt=""
       width={144}
       height={144}

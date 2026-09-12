@@ -1,0 +1,3 @@
+# MealMap ist privat und soll in keiner Suchmaschine erscheinen.
+User-agent: *
+Disallow: /

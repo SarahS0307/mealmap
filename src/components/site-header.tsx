@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { isActive, navItems, settingsItem } from "@/lib/nav";
 import { Logo } from "@/components/logo";
+import { UserMenu } from "@/components/user-menu";
 
 export function SiteHeader() {
   const pathname = usePathname();
@@ -35,21 +36,25 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <Link
-          href={settingsItem.href}
-          aria-label={settingsItem.label}
-          aria-current={
-            isActive(pathname, settingsItem.href) ? "page" : undefined
-          }
-          className={cn(
-            "ml-auto rounded-md p-2 transition-colors md:ml-0",
-            isActive(pathname, settingsItem.href)
-              ? "bg-accent text-accent-foreground"
-              : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
-          )}
-        >
-          <settingsItem.icon className="size-5" />
-        </Link>
+        <div className="ml-auto flex items-center gap-1 md:ml-0">
+          <Link
+            href={settingsItem.href}
+            aria-label={settingsItem.label}
+            title={settingsItem.label}
+            aria-current={
+              isActive(pathname, settingsItem.href) ? "page" : undefined
+            }
+            className={cn(
+              "rounded-md p-2 transition-colors",
+              isActive(pathname, settingsItem.href)
+                ? "bg-accent text-accent-foreground"
+                : "text-muted-foreground hover:bg-accent hover:text-foreground",
+            )}
+          >
+            <settingsItem.icon className="size-5" />
+          </Link>
+          <UserMenu />
+        </div>
       </div>
     </header>
   );

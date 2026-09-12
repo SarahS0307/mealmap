@@ -1,18 +1,77 @@
-import { ModulePlaceholder } from "@/components/module-placeholder";
+"use client";
 
-export const metadata = { title: "Einstellungen – MealMap" };
+import {
+  ApiKeyForm,
+  NameForm,
+  UserSwitcher,
+} from "@/components/settings-forms";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useSession } from "@/components/session-provider";
+import { ThemeSwitch } from "@/components/theme-switch";
 
 export default function EinstellungenPage() {
+  const { user } = useSession();
+
   return (
-    <ModulePlaceholder
-      title="Einstellungen"
-      description="Nutzer, Standardvorgaben und der Schlüssel für den KI-Import."
-      phase="Phase 1"
-      upcoming={[
-        "Name eingeben und Nutzer wechseln",
-        "API-Key für den KI-Import hinterlegen – ohne Key läuft die App manuell weiter",
-        "Standardvorbelegung: kein Frühstück zuhause, Mittagessen im Geschäft",
-      ]}
-    />
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <h1 className="text-3xl">Einstellungen</h1>
+        <p className="text-muted-foreground">
+          Angemeldet als{" "}
+          <strong className="text-foreground">{user?.name}</strong>.
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Nutzer</CardTitle>
+          <CardDescription>Wer gerade kocht und plant.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <NameForm />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Darstellung</CardTitle>
+          <CardDescription>Hell, dunkel oder wie dein Gerät.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ThemeSwitch />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>KI-Import</CardTitle>
+          <CardDescription>
+            Optional. Wird für Rezept-Import aus Bild, PDF und Link sowie für
+            Kategorie-Vorschläge benutzt.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ApiKeyForm />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Nutzer wechseln</CardTitle>
+          <CardDescription>
+            MealMap kennt kein Passwort – der Name genügt.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <UserSwitcher />
+        </CardContent>
+      </Card>
+    </div>
   );
 }

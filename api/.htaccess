@@ -1,0 +1,14 @@
+# Alle Anfragen unter /api an index.php weiterreichen.
+# Vorhandene Dateien bleiben direkt erreichbar.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+# Zugangsdaten und Schema niemals ausliefern.
+<FilesMatch "^(config\.php|schema\.sql|migrate\.php)$">
+    Require all denied
+</FilesMatch>

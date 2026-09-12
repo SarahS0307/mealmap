@@ -3,25 +3,21 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "postinstall": "prisma generate",
     "dev": "next dev",
     "sync": "gulp sync",
     "build": "next build",
+    "preview": "NEXT_PUBLIC_BASE_PATH=/MealMap NEXT_PUBLIC_API_BASE=/MealMap/api next build && node scripts/bundle.mjs --with-config --base=/MealMap",
+    "bundle": "NEXT_PUBLIC_BASE_PATH= NEXT_PUBLIC_API_BASE=/api next build && node scripts/bundle.mjs",
     "start": "next start",
     "lint": "eslint",
     "icons": "node scripts/build-icons.mjs",
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio",
-    "db:reset": "prisma migrate reset"
+    "db:migrate": "sh scripts/php.sh api/migrate.php",
+    "db:seed": "sh scripts/php.sh api/seed.php"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
-    "@prisma/adapter-better-sqlite3": "^7.10.0",
-    "@prisma/client": "^7.10.0",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.2.6",
-    "dotenv": "^17.4.2",
     "lucide-react": "^1.45.0",
     "next": "15.5.25",
     "react": "19.1.0",
@@ -39,7 +35,6 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.25",
     "gulp": "^5.0.1",
-    "prisma": "^7.10.0",
     "sharp": "^0.35.4",
     "tailwindcss": "^4",
     "typescript": "^5"
