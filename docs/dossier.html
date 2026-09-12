@@ -164,6 +164,18 @@ code{
 .spec dt:last-of-type,.spec dd:last-of-type{border-bottom:none}
 .ok{color:var(--accent); font-weight:600}
 
+/* ---- Code-Block ---- */
+.cmd{
+  background:var(--ink); color:#E8EDE9; border-radius:4px;
+  padding:18px 20px; overflow-x:auto; margin:0;
+  font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  font-size:13.5px; line-height:1.9;
+}
+:root:not([data-theme="light"]) .cmd, :root[data-theme="dark"] .cmd{background:#0C100E}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .cmd{background:#0C100E} }
+.cmd .c{color:#8FB08F}
+.setup-note{font-size:14.5px; color:var(--muted); margin-top:14px}
+
 /* ---- Gestaltung ---- */
 .palette{display:grid; grid-template-columns:repeat(auto-fit,minmax(104px,1fr)); gap:10px}
 .sw{border:1px solid var(--line); border-radius:3px; overflow:hidden; background:var(--surface)}
@@ -191,7 +203,7 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
 <div class="wrap">
 
 <header>
-  <p class="eyebrow">Projektdossier &middot; Stand 12. September 2026, 10:15 Uhr</p>
+  <p class="eyebrow">Projektdossier &middot; Stand 12. September 2026, 11:35 Uhr</p>
   <h1>MealMap</h1>
   <p class="lede">Rezepte, Meal-Prep-Plan und Einkaufsliste in einer Webapp. Dieses Dossier hält fest, was entschieden ist, was gebaut wird und was noch offen liegt.</p>
   <div class="meta">
@@ -258,6 +270,11 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       <dt>Versionsstände</dt>
       <dd><strong>Bewusst auf stabilen Versionen statt auf <code>latest</code></strong>
       <span class="why">Der <code>latest</code>-Tag von Prisma zeigt derzeit auf einen Release Candidate (8.0.0-rc.13). Als Fundament ist 7.10.0 festgelegt.</span></dd>
+    </div>
+    <div class="dec">
+      <dt>Was ins Repo gehört</dt>
+      <dd><strong>Alles außer Generiertem, Installiertem und Geheimem</strong>
+      <span class="why">Nicht im Repo: <code>node_modules</code>, <code>.next</code>, <code>.env</code>, der generierte Prisma-Client und die lokale Datenbank. Alles davon entsteht auf einem neuen Rechner von selbst — geprüft durch einen nachgebauten Klon, der nur aus den versionierten Dateien besteht und fehlerfrei baut.</span></dd>
     </div>
     <div class="dec">
       <dt>Versionierung</dt>
@@ -459,6 +476,14 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
 
 <section>
   <h2>Befehle</h2>
+  <p class="h2sub">Auf einem neuen Rechner starten</p>
+  <p>Projekt aus Git holen, in den Ordner wechseln, dann diese drei Zeilen — mehr ist nicht nötig:</p>
+  <pre class="cmd">npm install        <span class="c"># Pakete installieren, erzeugt den Prisma-Client mit</span>
+cp .env.example .env
+npm run dev        <span class="c"># läuft auf http://localhost:3000</span></pre>
+  <p class="setup-note">Der generierte Prisma-Client und die <code>.env</code> liegen bewusst nicht im Repo. Beides entsteht durch diese Zeilen von selbst: <code>npm install</code> ruft über einen <code>postinstall</code>-Schritt automatisch <code>prisma generate</code> auf. Geprüft an einem nachgebauten Klon, der ausschließlich aus den versionierten Dateien besteht und fehlerfrei durchbaut.</p>
+
+  <h2 style="margin-top:48px">Befehle</h2>
   <p class="h2sub">Was du im Projektordner ausführen kannst</p>
   <div class="tablewrap">
     <table>
@@ -466,6 +491,7 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       <tbody>
         <tr><td style="width:auto"><code>npm run dev</code></td><td>Startet Next.js auf <code>localhost:3000</code>. Der normale Weg beim Entwickeln.</td></tr>
         <tr><td style="width:auto"><code>npm run sync</code></td><td>Startet Next plus BrowserSync auf <code>localhost:3001</code>. Gibt zusätzlich eine Netzwerk-URL aus, mit der du die App am Handy öffnest; Scrollen und Klicken laufen dann auf allen Geräten synchron.</td></tr>
+        <tr><td style="width:auto"><code>npm install</code></td><td>Installiert die Pakete und erzeugt über einen <code>postinstall</code>-Schritt automatisch den Prisma-Client. Auf einem frischen Rechner reicht danach <code>cp .env.example .env</code> und <code>npm run dev</code>.</td></tr>
         <tr><td style="width:auto"><code>npm run icons</code></td><td>Erzeugt Logo-PNG, Favicon und Homescreen-Icon neu aus <code>assets/logo-mark.svg</code>. Nur nötig, wenn du die Bildmarke änderst.</td></tr>
         <tr><td style="width:auto"><code>npm run build</code></td><td>Produktions-Build, prüft zugleich Typen und Lint-Regeln.</td></tr>
         <tr><td style="width:auto"><code>npm run db:migrate</code></td><td>Legt eine neue Migration an und wendet sie auf die lokale Datenbank an.</td></tr>
@@ -489,6 +515,6 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
   </div>
 </section>
 
-<footer>Dossier zu MealMap &middot; letzte Aktualisierung 12.09.2026, 10:15 Uhr &middot; Datei: docs/dossier.html</footer>
+<footer>Dossier zu MealMap &middot; letzte Aktualisierung 12.09.2026, 11:35 Uhr &middot; Datei: docs/dossier.html</footer>
 
 </div>

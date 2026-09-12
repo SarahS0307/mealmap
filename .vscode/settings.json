@@ -1,0 +1,10 @@
+{
+  // Ignorierte Dateien (node_modules, .next, .env ...) in der Dateiliste
+  // ausgrauen, statt sie wie versionierte Dateien aussehen zu lassen.
+  "git.decorations.enabled": true,
+  "explorer.decorations.colors": true,
+  "explorer.decorations.badges": true,
+
+  // Ignorierte Dateien sollen sichtbar bleiben – nur eben ausgegraut.
+  "explorer.excludeGitIgnore": false
+}
