@@ -14,6 +14,9 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 const nextConfig: NextConfig = {
   output: "export",
+  // Im Benutzerordner liegt eine fremde package-lock.json. Ohne diese Angabe
+  // hielte Next den Benutzerordner für die Projektwurzel und warnt bei jedem Bau.
+  outputFileTracingRoot: import.meta.dirname,
   basePath,
   // Die Bildoptimierung von Next braucht einen Node-Server, den es hier nicht gibt.
   images: { unoptimized: true },

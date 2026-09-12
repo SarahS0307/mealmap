@@ -18,6 +18,7 @@
 import { spawn } from "node:child_process";
 import net from "node:net";
 import browserSyncModule from "browser-sync";
+import gulp from "gulp";
 
 const browserSync = browserSyncModule.create();
 
@@ -131,6 +132,67 @@ export async function sync() {
     `\n[gulp] BrowserSync läuft auf http://localhost:${SYNC_PORT}\n` +
       `[gulp] Die externe URL oben im Log öffnest du am Handy.\n`,
   );
+}
+
+/**
+ * Beobachtet die Quelldateien und baut das Bündel bei jeder Änderung neu.
+ *
+ * Gedacht für die produktionsnahe Umgebung unter localhost:8888/MealMap/:
+ * Dort liefert Apache fertige Dateien aus, die sich nicht selbst erneuern
+ * können. Der Neubau läuft damit automatisch – die Seite im Browser musst du
+ * danach einmal neu laden (Cmd+R).
+ */
+export function watch() {
+  let laeuft = false;
+  let erneutBauen = false;
+
+  function bauen() {
+    if (laeuft) {
+      // Während eines laufenden Baus gemeldete Änderungen nicht verlieren.
+      erneutBauen = true;
+      return;
+    }
+
+    laeuft = true;
+    const start = Date.now();
+    process.stdout.write("[watch] baue …");
+
+    const bau = spawn(process.platform === "win32" ? "npm.cmd" : "npm", ["run", "preview"], {
+      stdio: ["ignore", "ignore", "inherit"],
+      env: process.env,
+    });
+
+    bau.on("exit", (code) => {
+      laeuft = false;
+      const dauer = ((Date.now() - start) / 1000).toFixed(1);
+      console.log(
+        code === 0
+          ? ` fertig nach ${dauer}s – Seite neu laden (Cmd+R)`
+          : ` FEHLGESCHLAGEN (Code ${code})`,
+      );
+      if (erneutBauen) {
+        erneutBauen = false;
+        bauen();
+      }
+    });
+  }
+
+  console.log(
+    "\n[watch] Beobachte src/, api/ und public/.\n" +
+      "[watch] Adresse: http://localhost:8888/MealMap/\n",
+  );
+
+  // dist/ und out/ bewusst nicht beobachten – sonst löst der Bau sich selbst aus.
+  gulp.watch(
+    ["src/**/*", "api/**/*", "public/**/*", "next.config.ts"],
+    { ignoreInitial: true },
+    (fertig) => {
+      bauen();
+      fertig();
+    },
+  );
+
+  bauen();
 }
 
 export default sync;

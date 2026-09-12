@@ -203,13 +203,13 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
 <div class="wrap">
 
 <header>
-  <p class="eyebrow">Projektdossier &middot; Stand 12. September 2026, 17:50 Uhr</p>
+  <p class="eyebrow">Projektdossier &middot; Stand 12. September 2026, 20:35 Uhr</p>
   <h1>MealMap</h1>
   <p class="lede">Rezepte, Meal-Prep-Plan und Einkaufsliste in einer Webapp. Dieses Dossier hält fest, was entschieden ist, was gebaut wird und was noch offen liegt.</p>
   <div class="meta">
     <span><b>Ordner</b> ~/Sites/MealMap</span>
     <span><b>Quelle</b> mealmap-konzept.md</span>
-    <span><b>Phase</b> 0 und 1 erledigt</span>
+    <span><b>Phase</b> 0 bis 2 erledigt</span>
     <span><b>Lokal</b> localhost:3000</span>
   </div>
 </header>
@@ -229,7 +229,7 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
   <div class="stack">
     <div class="item note">
       <h3>Wo das Projekt steht</h3>
-      <p><strong>Phase 0 und 1 sind fertig und geprüft.</strong> Grundgerüst, Design nach Moodboard, Datenbankschema mit zwölf Tabellen, PHP-API mit acht Endpunkten, Nutzerverwaltung mit Namensabfrage als Zugangsschranke. <strong>Als Nächstes: Phase 2 — Rezepte anlegen, Kategorien, Liste, Detailansicht, Bewertung.</strong></p>
+      <p><strong>Phase 0 bis 2 sind fertig und geprüft.</strong> Grundgerüst, Design nach Moodboard, Datenbankschema mit zwölf Tabellen, PHP-API mit 19 Endpunkten, Nutzerverwaltung mit Namensabfrage als Zugangsschranke, vollständiges Rezeptmodul mit Kategorien und Bewertung. <strong>Als Nächstes: Phase 3 — Import aus Bild, PDF und Link, Kochmodus mit Timern, PDF-Export, Filter.</strong></p>
     </div>
 
     <div class="item note">
@@ -261,7 +261,7 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
   <h2>Links</h2>
   <p class="h2sub">Wo die App gerade läuft</p>
   <dl class="linkbox">
-    <dt>Wie im Livebetrieb</dt><dd>http://localhost:8888/MealMap/<span class="hint">Alles über Apache unter einer Adresse, kein CORS, MySQL dahinter. Vorher <code>npm run preview</code> ausführen — nach jeder Änderung erneut.</span></dd>
+    <dt>Wie im Livebetrieb</dt><dd>http://localhost:8888/MealMap/<span class="hint">Alles über Apache unter einer Adresse, kein CORS, MySQL dahinter. Dafür <code>npm run watch</code> laufen lassen — es baut bei jeder Änderung neu, die Seite danach einmal neu laden.</span></dd>
     <dt>Schnellmodus</dt><dd>http://localhost:3000<span class="hint">Next.js mit sofortigem Nachladen, API über Port 8888. Bequemer beim Bauen, weicht aber vom Livebetrieb ab. Läuft nach <code>npm run dev</code>.</span></dd>
     <dt>Am Handy</dt><dd>http://192.168.178.38:3001<span class="hint">Schnellmodus mit BrowserSync (<code>npm run sync</code>). Nur im selben WLAN; die IP steht beim Start im Log.</span></dd>
     <dt>Später live</dt><dd>http://mealplan.sarah-schoenthaler.de<span class="hint">Subdomain bei Strato. Dorthin wandert der Inhalt von <code>dist/</code>.</span></dd>
@@ -291,6 +291,11 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       <dt>Betrieb</dt>
       <dd><strong>Vorerst lokal, Livegang später manuell</strong>
       <span class="why">Testdaten entstehen ausschließlich über ein Seed-Skript, nie über Migrationen. Die Live-Instanz startet dadurch automatisch mit leerer Datenbank.</span></dd>
+    </div>
+    <div class="dec">
+      <dt>Rolle von Next.js</dt>
+      <dd><strong>Werkzeug auf dem Entwicklungsrechner, nicht auf dem Server</strong>
+      <span class="why">Next.js erzeugt aus dem React-Code fertige HTML-, CSS- und JavaScript-Dateien. Auf Strato landet nur dieses Ergebnis plus die PHP-API — dort läuft kein Node. Next zu entfernen hieße, die komplette Oberfläche in PHP-Templates neu zu schreiben; das Ziel „läuft auf Strato“ ist ohne das bereits erfüllt.</span></dd>
     </div>
     <div class="dec">
       <dt>Warum ein Server</dt>
@@ -323,11 +328,7 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       <dd><strong>Next.js, wahlweise mit BrowserSync-Proxy davor</strong>
       <span class="why"><code>npm run dev</code> startet nur Next auf Port 3000. <code>npm run sync</code> startet zusätzlich BrowserSync auf 3001 — dafür gibt es eine Netzwerk-URL fürs Handy und synchrones Scrollen und Klicken über mehrere Geräte. Next bringt sein Hot Reloading selbst mit, BrowserSync reicht den Websocket per <code>ws: true</code> durch.</span></dd>
     </div>
-    <div class="dec">
-      <dt>Versionsstände</dt>
-      <dd><strong>Bewusst auf stabilen Versionen statt auf <code>latest</code></strong>
-      <span class="why">Der <code>latest</code>-Tag von Prisma zeigt derzeit auf einen Release Candidate (8.0.0-rc.13). Als Fundament ist 7.10.0 festgelegt.</span></dd>
-    </div>
+    
     <div class="dec">
       <dt>Was ins Repo gehört</dt>
       <dd><strong>Alles außer Generiertem, Installiertem und Geheimem</strong>
@@ -350,7 +351,7 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       <div class="num">00</div>
       <div>
         <h3>Grundgerüst <span class="chip go">erledigt</span></h3>
-        <p>Next.js 15 mit TypeScript, Tailwind v4 und shadcn/ui aufgesetzt, <code>.gitignore</code> und <code>.env.example</code> angelegt. (Die zunächst gewählte Anbindung über Prisma und SQLite wurde später durch die PHP-API ersetzt, siehe Entscheidungen.) Basis-Layout mit Hauptnavigation: Kopfzeile am Desktop, feste Leiste am unteren Rand auf dem Handy. Seiten für alle vier Bereiche vorhanden, noch als Platzhalter. Produktions-Build, Typecheck und Lint laufen fehlerfrei durch.</p>
+        <p>Next.js 15 mit TypeScript, Tailwind v4 und shadcn/ui aufgesetzt, <code>.gitignore</code> und <code>.env.example</code> angelegt. Basis-Layout mit Hauptnavigation: Kopfzeile am Desktop, feste Leiste am unteren Rand auf dem Handy. Seiten für alle vier Bereiche vorhanden, noch als Platzhalter. Produktions-Build, Typecheck und Lint laufen fehlerfrei durch.</p>
       </div>
     </div>
 
@@ -362,18 +363,19 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       </div>
     </div>
 
-    <div class="phase">
+    <div class="phase done">
       <div class="num">02</div>
       <div>
-        <h3>Rezepte, Basis <span class="chip hold">als Nächstes</span></h3>
-        <p>Rezept per Text anlegen, Kategorien anlegen, umbenennen und löschen inklusive Umzugs-Dialog für betroffene Rezepte. Rezeptliste, Detailansicht, Bearbeiten, Sternebewertung mit Kommentar, Notizfeld, Einfrierbar-Kennzeichen.</p>
+        <h3>Rezepte, Basis <span class="chip go">erledigt</span></h3>
+        <p>Rezepte anlegen, bearbeiten und löschen mit Zutaten, Zubereitungsschritten, Notiz, Portionen, Zubereitungszeit und Einfrierbar-Kennzeichen. Liste mit Suche und Kategoriefilter, Detailansicht, Sternebewertung mit Kommentar. Kategorien anlegen, umbenennen und löschen — beim Löschen mit enthaltenen Rezepten fragt die App nach, wohin sie sollen, statt sie stillschweigend zu verlieren.</p>
+        <p style="margin-top:10px">Dazu ein <strong>Ändern-Knopf</strong> für Änderungen in Alltagssprache: „2 statt 3 Eier“, „ohne Zwiebeln“, „300 g Mehl“, „Butter durch Öl ersetzen“. Die App zeigt erst, was sie verstanden hat, und schreibt erst nach Bestätigung — direkt ins Rezept, nicht als Notiz daneben (Konzept 4.2). Erkannt werden feste Muster; beliebige Sätze versteht sie erst mit dem KI-Import.</p>
       </div>
     </div>
 
     <div class="phase">
       <div class="num">03</div>
       <div>
-        <h3>Rezepte, Erweiterungen <span class="chip">geplant</span></h3>
+        <h3>Rezepte, Erweiterungen <span class="chip hold">als Nächstes</span></h3>
         <p>Bild- und PDF-Upload, Webseiten- und Video-Link mit Embed, KI-Import mit Fallback auf manuelle Eingabe, Kategorie-Vorschläge, Kochmodus mit Timern und live skalierbaren Portionen, PDF-Export, Filter und Volltextsuche.</p>
       </div>
     </div>
@@ -446,13 +448,12 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
   <h2>Datenmodell</h2>
   <p class="h2sub">Sechs Korrekturen gegenüber dem Konzept</p>
   <p>Das Datenmodell aus Abschnitt 7 des Konzepts trägt weitgehend. An sechs Stellen deckt es die beschriebenen Funktionen aber noch nicht ab. Alle Änderungen sind additiv, das Konzept bricht dadurch nicht. Umgesetzt als <code>api/schema.sql</code> mit zwölf Tabellen.</p>
-  <p><strong>Nachtrag zu Korrektur 2:</strong> Beim erneuten Lesen von Konzept 5.2 steht dort, dass der Abwesenheits-Marker <em>Mahlzeiten</em> kennzeichnet, nicht ganze Tage. Nur der Einkaufstermin ist eine Tages-Eigenschaft. So ist es gebaut: <code>plan_days</code> trägt den Einkaufstag, <code>plan_entries</code> die Abwesenheit.</p>
   <div class="tablewrap">
     <table>
       <thead><tr><th>#</th><th>Problem</th><th>Lösung</th></tr></thead>
       <tbody>
         <tr><td>1</td><td><code>PlanEntry</code> hat nur ein <code>date</code>, das Konzept verlangt Koch- und Essenstermin getrennt</td><td>Feld aufteilen in <code>cook_date</code> und <code>eat_date</code></td></tr>
-        <tr><td>2</td><td><code>is_absent</code> und <code>is_shopping_day</code> hängen an der einzelnen Mahlzeit, sind aber Eigenschaften des Tages</td><td>Eigener Datensatz <code>PlanDay</code> pro Tag und Nutzer</td></tr>
+        <tr><td>2</td><td><code>is_shopping_day</code> hängt an der einzelnen Mahlzeit, ist aber eine Eigenschaft des Tages. Die Abwesenheit dagegen gilt laut Konzept 5.2 tatsächlich je Mahlzeit.</td><td><code>plan_days</code> trägt den Einkaufstag, <code>plan_entries</code> die Abwesenheit</td></tr>
         <tr><td>3</td><td><code>ShoppingListItem.source</code> kennt nur ein Rezept, der anteilige Abzug braucht alle Beiträge</td><td>Zusätzliche Tabelle <code>ShoppingListContribution</code> (Posten ↔ Plan-Eintrag ↔ Menge)</td></tr>
         <tr><td>4</td><td>Zutaten sind freier Text, „Zwiebel“ und „Zwiebeln“ lassen sich nicht zusammenfassen</td><td>Normalisierungs- und Einheitenschicht als eigenes, testbares Modul</td></tr>
         <tr><td>5</td><td>Der Vorrat füllt sich nie von selbst, ist aber Grundlage für Vorschläge und Einkaufsabgleich</td><td>Kochtermin abhaken erzeugt <code>StockItem</code>, Essenstermin abhaken zieht ab</td></tr>
@@ -460,6 +461,22 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       </tbody>
     </table>
   </div>
+  <h3 style="font-size:19px;margin-top:32px;margin-bottom:10px">Wann zwei Zutaten dieselbe sind</h3>
+  <p>Grundlage für das Zusammenfassen in der Einkaufsliste, umgesetzt in <code>api/lib/ingredients.php</code>. Drei Regeln in dieser Reihenfolge: beschreibende Wörter fallen weg, gleichbedeutende Namen werden zusammengeführt, der Plural wird auf den Singular zurückgeführt.</p>
+  <div class="tablewrap" style="margin-top:14px">
+    <table>
+      <thead><tr><th>Dasselbe</th><th>Verschieden</th></tr></thead>
+      <tbody>
+        <tr><td style="width:50%">Zwiebeln = rote = weiße = große gelbe Zwiebeln</td><td>Zwiebeln ≠ Frühlingszwiebeln</td></tr>
+        <tr><td>Karotten = Möhren = Mohrrüben</td><td>Zwiebeln ≠ Röstzwiebeln</td></tr>
+        <tr><td>Eier = große Eier = mittlere Eier = Bio-Eier</td><td>Karotten ≠ Karottensaft</td></tr>
+        <tr><td>Paprika = rote = grüne = gelbe Paprika</td><td>Kartoffeln ≠ Süßkartoffeln</td></tr>
+        <tr><td>Sahne = Rahm = Schlagsahne = Schlagobers</td><td>Milch ≠ Buttermilch</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="margin-top:14px">Die Unterscheidung trägt sich selbst: Beschreibende Wörter werden nur als <em>eigenständiges Wort</em> entfernt, an einem Wortanfang wird nie abgeschnitten. Deshalb bleibt jedes zusammengesetzte Wort eine eigene Zutat. Bewusst nicht entfernt werden Wörter, die das Produkt verändern — „gemahlen“ oder „gekocht“ machen aus Kaffeebohnen etwas anderes.</p>
+  <p><strong>Wichtig bei Änderungen:</strong> Der Schlüssel wird beim Speichern eines Rezepts festgeschrieben. Wer die Regeln anpasst, muss anschließend <code>npm run db:reindex</code> ausführen, sonst tragen ältere Rezepte noch die alten Schlüssel.</p>
 </section>
 
 <section>
@@ -485,7 +502,6 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       <p>Heute legt jeder eingegebene Name automatisch einen neuen Nutzer an. Das soll aufhören: <strong>Anmelden heißt nachschlagen, nie anlegen.</strong> Die vorhandene Tabelle <code>users</code> ist zugleich die Berechtigungsliste — wer dort nicht steht, kommt nicht rein. Gepflegt wird sie ausschließlich von Sarah direkt in der Datenbank (phpMyAdmin), nicht über die Oberfläche.</p>
       <p style="margin-top:10px"><strong>Umzusetzen:</strong> In <code>api/routes/session.php</code> den <code>INSERT</code>-Zweig entfernen und bei unbekanntem Namen mit 403 antworten. Die Felder <code>closed_signup</code> und <code>allowed_names</code> in <code>api/config.php</code> entfallen dabei — sie waren ein früherer, schwächerer Entwurf mit einer Namensliste in der Konfigurationsdatei. Wichtig: Auf einer frischen Instanz muss vorher mindestens ein Nutzer in der Tabelle stehen, sonst sperrt sich die App selbst aus. Lokal erledigt das <code>npm run db:seed</code>, live ein Eintrag über phpMyAdmin.</p>
       <p style="margin-top:10px"><strong>Zeitpunkt:</strong> Sarah hat entschieden, das erst vor dem Livegang umzusetzen. Während der Entwicklung bleibt das Anlegen über die Oberfläche möglich, was beim Bauen der Rezept-Module praktisch ist.</p>
-      <p style="margin-top:10px"><strong>Frühere Einschätzung korrigiert:</strong> Zunächst war vermerkt, dass eine geschlossene Liste die Entwicklung blockiert. Das galt für den Entwurf mit Konfigurationsdatei. Mit der <code>users</code>-Tabelle als Liste blockiert technisch nichts — das Seed-Skript liefert den ersten Nutzer.</p>
     </div>
     <div class="item note">
       <h3>Spam- und Zugriffsschutz <span class="tag note">vor dem Livegang</span></h3>
@@ -507,6 +523,10 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       <h3>Startseite wird zur Rezeptaufnahme <span class="tag note">Phase 2/3</span></h3>
       <p>Die heutigen drei Kacheln auf der Startseite sind ein Platzhalter. Später soll dort das Hochladen und Verwalten von Rezepten stattfinden — die Startseite wird damit die Arbeitsfläche, an der neue Rezepte hereinkommen. <strong>Die Rezeptsammlung unter <code>/rezepte</code> bleibt davon unberührt</strong> und dient weiterhin dem Durchsehen, Filtern und Öffnen vorhandener Rezepte. Umsetzbar erst, wenn es Rezepte und einen Import gibt.</p>
     </div>
+    <div class="item note">
+      <h3>Änderungswünsche in beliebiger Sprache <span class="tag note">Phase 3</span></h3>
+      <p>Der Ändern-Knopf versteht heute feste Muster („2 statt 3 Eier“, „ohne Zwiebeln“, „Butter durch Öl ersetzen“). Mit hinterlegtem API-Schlüssel soll er beliebige Sätze verstehen — etwa „mach das Ganze vegan“ oder „halbiere alle Mengen außer den Gewürzen“. Die zweistufige Bedienung bleibt: erst zeigen, was verstanden wurde, dann schreiben.</p>
+    </div>
     <div class="item">
       <h3>Platz für neue Ideen</h3>
       <p>Alles, was dir während der Umsetzung einfällt, kommt hier rein — einmal erwähnen reicht, ich trage es nach und veröffentliche das Dossier neu.</p>
@@ -522,15 +542,8 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       <h3>API-Key liegt im Klartext <span class="tag warn">vor Livegang</span></h3>
       <p>Der Key wird serverseitig am Nutzer gespeichert, sonst könnte der Server die Imports nicht ausführen. In der lokalen MySQL-Datenbank ist das unkritisch. Sobald die App online geht, sollte er verschlüsselt abgelegt werden.</p>
     </div>
-    <div class="item risk">
-      <h3>Strato: welches Produkt? <span class="tag warn">Antwort nötig</span></h3>
-      <p>MealMap ist eine Node-Anwendung mit Datenbank, kein statisches HTML und kein PHP. Das <strong>klassische Strato-Webhosting</strong> (FTP, PHP, MySQL) kann sie deshalb <strong>nicht ausführen</strong> – es ist auf PHP ausgelegt und gibt keinen Root-Zugriff. Ein <strong>Strato V-Server oder Dedicated Server</strong> kann es: volle Rechte, Node installierbar, Next.js ausdrücklich unterstützt. Strato empfiehlt dafür ab 4 GB RAM.</p>
-      <p style="margin-top:10px">Offen ist, welches Produkt vorliegt. Davon hängt ab, wie der Ordner für den Livegang aussieht – und ob gegebenenfalls ein anderer Tarif nötig wird. Sollte nur klassisches Webhosting verfügbar sein, wären die Alternativen: Tarifwechsel bei Strato, ein anderer Anbieter mit Node, oder ein grundsätzlich anderer technischer Ansatz für MealMap.</p>
-    </div>
-    <div class="item risk">
-      <h3>Projektordner war im Netz lesbar <span class="tag warn">behoben</span></h3>
-      <p>Über <code>localhost:8888/MealMap/</code> lieferte Apache den kompletten Quellcode aus — samt <code>.env</code> im Klartext und der ganzen Git-Historie, und das für jeden im selben WLAN. Eine <code>.htaccess</code> im Projektstamm sperrt jetzt versteckte Dateien, Entwicklungsordner und die Verzeichnisauflistung. Die Zugangsdaten der API waren nie betroffen, die waren von Anfang an gesperrt.</p>
-    </div>
+    
+    
     <div class="item risk">
       <h3>npm audit meldet postcss <span class="tag warn">Entscheidung offen</span></h3>
       <p>Next 15.5.25 bringt intern eine postcss-Version mit, für die Sicherheitshinweise vorliegen. Betroffen ist die Build-Kette, nicht die laufende App; lokal ist das unkritisch. Bereinigen ließe es sich nur durch den Sprung auf Next 16 — ein Hauptversionswechsel, den ich nicht ungefragt mache. Spätestens vor dem Livegang entscheiden.</p>
@@ -539,10 +552,7 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       <h3>Kosten pro Import <span class="tag warn">Phase 3</span></h3>
       <p>Jeder Import aus Bild, PDF oder Link verursacht Kosten über den hinterlegten Key. Ich baue eine Anzeige ein, die vor dem Import sagt, dass jetzt die KI benutzt wird.</p>
     </div>
-    <div class="item risk">
-      <h3>Zutaten-Normalisierung lag doppelt vor <span class="tag warn">behoben</span></h3>
-      <p>Nach dem Architekturwechsel gab es die Vereinheitlichung von Zutatennamen zweimal: in TypeScript und in PHP. Zwei Fassungen laufen unweigerlich auseinander, und dann fasst die Einkaufsliste falsch zusammen. Es gibt jetzt nur noch <code>api/lib/ingredients.php</code>; die tote TypeScript-Fassung ist entfernt.</p>
-    </div>
+    
     <div class="item risk">
       <h3>Einheiten ohne saubere Umrechnung <span class="tag warn">Phase 6</span></h3>
       <p>„2 Zwiebeln“ und „150 g Zwiebeln“ lassen sich nicht addieren. Die Liste fasst nur zusammen, was dieselbe Einheit hat, und zeigt den Rest als getrennte Posten. Erfahrungsgemäß der Punkt, an dem eine Einkaufsliste unübersichtlich wird.</p>
@@ -596,6 +606,8 @@ npm run preview     <span class="c"># http://localhost:8888/MealMap/</span></pre
         <tr><td style="width:auto"><code>npm run sync</code></td><td>Startet Next plus BrowserSync auf <code>localhost:3001</code>. Gibt zusätzlich eine Netzwerk-URL aus, mit der du die App am Handy öffnest; Scrollen und Klicken laufen dann auf allen Geräten synchron.</td></tr>
         <tr><td style="width:auto"><code>npm install</code></td><td>Installiert die Pakete. Auf einem frischen Rechner danach <code>cp api/config.example.php api/config.php</code>, <code>npm run db:migrate</code> und <code>npm run preview</code>.</td></tr>
         <tr><td style="width:auto"><code>npm run preview</code></td><td>Baut <code>dist/</code> für den Unterordner <code>/MealMap</code>, mit den lokalen Zugangsdaten. Danach läuft die App unter <code>localhost:8888/MealMap/</code>. Nach jeder Änderung neu ausführen.</td></tr>
+        <tr><td style="width:auto"><code>npm run watch</code></td><td>Beobachtet <code>src/</code>, <code>api/</code> und <code>public/</code> und baut das Bündel bei jeder Änderung neu. Die Seite im Browser danach einmal neu laden.</td></tr>
+        <tr><td style="width:auto"><code>npm run db:reindex</code></td><td>Berechnet die Zutatenschlüssel aller Rezepte neu. Nötig, wenn die Regeln in <code>api/lib/ingredients.php</code> geändert wurden.</td></tr>
         <tr><td style="width:auto"><code>npm run bundle</code></td><td>Baut <code>dist/</code> <strong>ohne</strong> Zugangsdaten — das ist der Ordner, der auf den Server geht.</td></tr>
         <tr><td style="width:auto"><code>npm run icons</code></td><td>Erzeugt Logo-PNG, Favicon und Homescreen-Icon neu aus <code>assets/logo-mark.svg</code>. Nur nötig, wenn du die Bildmarke änderst.</td></tr>
         <tr><td style="width:auto"><code>npm run build</code></td><td>Produktions-Build, prüft zugleich Typen und Lint-Regeln.</td></tr>
@@ -622,6 +634,6 @@ npm run preview     <span class="c"># http://localhost:8888/MealMap/</span></pre
   </div>
 </section>
 
-<footer>Dossier zu MealMap &middot; letzte Aktualisierung 12.09.2026, 17:50 Uhr &middot; Datei: docs/dossier.html</footer>
+<footer>Dossier zu MealMap &middot; letzte Aktualisierung 12.09.2026, 20:35 Uhr &middot; Datei: docs/dossier.html</footer>
 
 </div>

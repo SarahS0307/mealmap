@@ -50,16 +50,21 @@ Zwei Voraussetzungen in der Apache-Konfiguration:
 ## Zwei Arten zu arbeiten
 
 **So, wie es später live läuft** – alles über Apache unter einer einzigen
-Adresse, `/api` relativ, kein CORS:
+Adresse, `/api` relativ, kein CORS. Das ist der normale Weg:
 
 ```bash
-npm run preview        # baut dist/ und startet nichts – MAMP liefert aus
+npm run watch
 ```
 
 Danach: **http://localhost:8888/MealMap/**
 
-Der Ordner `dist/` ist zugleich genau das, was auf den Server hochgeladen wird.
-Nach jeder Änderung muss `npm run preview` neu laufen.
+`npm run watch` beobachtet `src/`, `api/` und `public/` und baut das Bündel bei
+jeder Änderung neu (etwa 6 Sekunden). Die Seite im Browser danach einmal neu
+laden – automatisches Nachladen ginge nur über einen zweiten Port.
+
+Einmalig bauen ohne Beobachten: `npm run preview`.
+
+Der Ordner `dist/` ist zugleich das, was auf den Server hochgeladen wird.
 
 **Schnell, mit sofortigem Nachladen** – Next.js auf Port 3000, API über MAMP auf
 Port 8888. Bequemer beim Entwickeln, weicht aber vom Livebetrieb ab:
@@ -73,7 +78,8 @@ npm run sync           # zusätzlich BrowserSync und eine URL fürs Handy
 
 | Befehl | Wozu |
 | --- | --- |
-| `npm run preview` | Baut `dist/` für den Unterordner `/MealMap`, inklusive lokaler Zugangsdaten |
+| `npm run watch` | Beobachtet die Quelldateien und baut bei jeder Änderung neu – der normale Weg beim Arbeiten |
+| `npm run preview` | Baut `dist/` einmalig für den Unterordner `/MealMap`, inklusive lokaler Zugangsdaten |
 | `npm run bundle` | Baut `dist/` **ohne** Zugangsdaten – das ist der Ordner für den Server |
 | `npm run dev` | Next.js auf Port 3000 |
 | `npm run sync` | Next.js plus BrowserSync auf Port 3001 – gibt eine Netzwerk-URL fürs Handy aus und spiegelt Scrollen und Klicks über mehrere Geräte |
@@ -81,9 +87,22 @@ npm run sync           # zusätzlich BrowserSync und eine URL fürs Handy
 | `npm run icons` | Erzeugt Logo-PNG, Favicon und Homescreen-Icon neu aus `assets/logo-mark.svg` |
 | `npm run db:migrate` | Legt die Tabellen aus `api/schema.sql` in MySQL an |
 | `npm run db:seed` | Füllt Beispieldaten ein |
+| `npm run db:reindex` | Berechnet die Zutatenschlüssel neu – nötig nach Änderungen an `api/lib/ingredients.php` |
 
 Den Produktions-Build nicht starten, während der Entwicklungsserver läuft – beide
 schreiben nach `.next` und kommen sich in die Quere.
+
+## Warum Next.js, wenn der Server PHP spricht
+
+Next.js läuft **nicht auf dem Server**, sondern nur auf dem Entwicklungsrechner.
+Es ist ein Werkzeug, das aus dem React-Code fertige HTML-, CSS- und
+JavaScript-Dateien erzeugt. Auf Strato landet nur dieses Ergebnis plus die
+PHP-API – dort ist kein Node im Spiel.
+
+| | Aufgabe | Läuft auf dem Server |
+| --- | --- | --- |
+| PHP + MySQL | Daten speichern und ausliefern | ja |
+| Next.js | baut die Oberfläche | nein, nur beim Entwickeln |
 
 ## Aufbau
 
