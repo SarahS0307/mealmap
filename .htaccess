@@ -23,6 +23,10 @@ Options -Indexes
     # den PHP-Dateien sofort, ohne dass neu gebaut werden muss.
     RewriteRule ^api(/|$) - [L]
 
+    # Hochgeladene Bilder und PDFs liegen außerhalb des Bündels, damit sie einen
+    # Neubau überstehen. Sie werden deshalb direkt ausgeliefert.
+    RewriteRule ^uploads(/|$) - [L]
+
     # Alles Übrige kommt aus dem gebauten Bündel.
     RewriteCond %{REQUEST_URI} !/dist/
     RewriteRule ^(.*)$ dist/$1 [L]

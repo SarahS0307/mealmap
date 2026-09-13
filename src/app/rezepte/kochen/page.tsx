@@ -12,7 +12,11 @@ import { skaliereMenge, zeigeMenge } from "@/lib/portions";
 import { cn } from "@/lib/utils";
 
 function Inhalt() {
-  const id = useSearchParams().get("id");
+  const parameter = useSearchParams();
+  const id = parameter.get("id");
+  // Aus dem Plan heraus kommt die geplante Portionszahl mit – gekocht wird
+  // für so viele, wie eingeplant sind, nicht für die Vorgabe des Rezepts.
+  const geplantePortionen = Number(parameter.get("portionen")) || null;
 
   const [rezept, setRezept] = useState<ApiRecipe | null>(null);
   const [schritt, setSchritt] = useState(0);
@@ -31,13 +35,13 @@ function Inhalt() {
     try {
       const { recipe } = await api.recipe(id);
       setRezept(recipe);
-      setPortionen(recipe.servings);
+      setPortionen(geplantePortionen ?? recipe.servings);
     } catch (e) {
       setFehler(e instanceof Error ? e.message : "Laden fehlgeschlagen.");
     } finally {
       setLaedt(false);
     }
-  }, [id]);
+  }, [id, geplantePortionen]);
 
   useEffect(() => {
     void laden();

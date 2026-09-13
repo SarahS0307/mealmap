@@ -103,15 +103,39 @@ TEXT;
  */
 function claude_rezepte_lesen(string $apiKey, array $inhalte): array
 {
+    return claude_json(
+        $apiKey,
+        claude_anweisung(),
+        $inhalte,
+        claude_rezept_schema(),
+        'recipes',
+        16000,
+    );
+}
+
+/**
+ * Ein Aufruf bei Anthropic mit fest vorgegebener Antwortform.
+ *
+ * $schluessel ist der Name des Feldes im Schema, dessen Inhalt zurückkommt –
+ * die Antwort ist immer ein Objekt mit genau einer Liste darin.
+ */
+function claude_json(
+    string $apiKey,
+    string $anweisung,
+    array $inhalte,
+    array $schema,
+    string $schluessel,
+    int $maxTokens,
+): array {
     $rumpf = [
         'model'      => CLAUDE_MODELL,
-        'max_tokens' => 16000,
-        'system'     => claude_anweisung(),
+        'max_tokens' => $maxTokens,
+        'system'     => $anweisung,
         'messages'   => [['role' => 'user', 'content' => $inhalte]],
         'output_config' => [
             'format' => [
                 'type'   => 'json_schema',
-                'schema' => claude_rezept_schema(),
+                'schema' => $schema,
             ],
         ],
     ];
@@ -150,12 +174,12 @@ function claude_rezepte_lesen(string $apiKey, array $inhalte): array
     if ($status !== 200) {
         $meldung = $daten['error']['message'] ?? 'Unbekannter Fehler';
         error_log("MealMap: Anthropic antwortete $status: $meldung");
-        fail('Der Import ist fehlgeschlagen: ' . $meldung, 502);
+        fail('Die Anfrage ist fehlgeschlagen: ' . $meldung, 502);
     }
 
     // Bei einer Absage steht nichts Verwertbares im Inhalt.
     if (($daten['stop_reason'] ?? '') === 'refusal') {
-        fail('Der Inhalt wurde abgelehnt. Bitte gib das Rezept von Hand ein.', 422);
+        fail('Der Inhalt wurde abgelehnt.', 422);
     }
 
     $text = '';
@@ -166,10 +190,10 @@ function claude_rezepte_lesen(string $apiKey, array $inhalte): array
     }
 
     $ergebnis = json_decode($text, true);
-    if (!is_array($ergebnis) || !isset($ergebnis['recipes'])) {
+    if (!is_array($ergebnis) || !isset($ergebnis[$schluessel])) {
         error_log('MealMap: unerwartete Antwortform: ' . substr($text, 0, 500));
         fail('Die Antwort war nicht lesbar. Bitte noch einmal versuchen.', 502);
     }
 
-    return $ergebnis['recipes'];
+    return $ergebnis[$schluessel];
 }

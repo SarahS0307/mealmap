@@ -1,9 +1,10 @@
-import { BookOpen, CalendarDays, Settings, ShoppingCart } from "lucide-react";
+import { BookOpen, CalendarDays, Package, Settings, ShoppingCart } from "lucide-react";
 
 /** Hauptnavigation der App. Reihenfolge gilt für Kopfzeile und mobile Leiste. */
 export const navItems = [
   { href: "/rezepte", label: "Rezepte", icon: BookOpen },
   { href: "/plan", label: "Plan", icon: CalendarDays },
+  { href: "/vorrat", label: "Vorrat", icon: Package },
   { href: "/einkaufsliste", label: "Einkaufsliste", icon: ShoppingCart },
 ] as const;
 

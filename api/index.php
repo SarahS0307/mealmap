@@ -30,6 +30,8 @@ require_once __DIR__ . '/routes/categories.php';
 require_once __DIR__ . '/routes/recipes.php';
 require_once __DIR__ . '/routes/uploads.php';
 require_once __DIR__ . '/routes/import.php';
+require_once __DIR__ . '/routes/plan.php';
+require_once __DIR__ . '/routes/stock.php';
 
 /**
  * Zerlegt Pfade mit einer Kennung, etwa /recipes/abc123 oder
@@ -37,6 +39,18 @@ require_once __DIR__ . '/routes/import.php';
  */
 $id = '';
 $muster = $route;
+// Plan-Einträge: /plan/entries/{id} sowie /mark und /confirm daran
+if (preg_match('#^/plan/entries/([A-Za-z0-9_-]+)(/mark|/confirm|/freeze)?$#', $route, $tp)) {
+    $id = $tp[1];
+    $muster = '/plan/entries/{id}' . ($tp[2] ?? '');
+}
+
+// Vorratsposten: /stock/{id} und /stock/{id}/take
+if (preg_match('#^/stock/([A-Za-z0-9_-]+)(/take)?$#', $route, $ts)) {
+    $id = $ts[1];
+    $muster = '/stock/{id}' . ($ts[2] ?? '');
+}
+
 // Pfade mit zwei Kennungen: /recipes/{id}/images/{bildId}
 $bildId = '';
 if (preg_match('#^/recipes/([A-Za-z0-9_-]+)/images/([A-Za-z0-9_-]+)$#', $route, $t2)) {
@@ -113,6 +127,60 @@ switch ("$method $muster") {
 
     case 'POST /uploads':
         route_uploads_create();
+
+    case 'GET /plan':
+        route_plan_index();
+
+    case 'POST /plan/entries':
+        route_plan_entry_create();
+
+    case 'PATCH /plan/entries/{id}':
+        route_plan_entry_update($id);
+
+    case 'DELETE /plan/entries/{id}':
+        route_plan_entry_delete($id);
+
+    case 'PUT /plan/entries/{id}/mark':
+        route_plan_entry_mark($id);
+
+    case 'PUT /user/state':
+        route_user_state();
+
+    case 'PUT /user/habits':
+        route_user_habits();
+
+    case 'GET /states':
+        route_states_index();
+
+    case 'PUT /plan/entries/{id}/confirm':
+        route_plan_entry_confirm($id);
+
+    case 'GET /stock':
+        route_stock_index();
+
+    case 'POST /stock':
+        route_stock_create();
+
+    case 'PATCH /stock/{id}':
+        route_stock_update($id);
+
+    case 'DELETE /stock/{id}':
+        route_stock_delete($id);
+
+    case 'PUT /stock/{id}/take':
+        route_stock_take($id);
+
+    case 'POST /plan/entries/{id}/freeze':
+        route_plan_entry_freeze($id);
+
+    case 'POST /plan/suggest':
+        route_plan_suggest();
+
+    case 'DELETE /plan/suggestions':
+        route_plan_suggestions_clear();
+
+    case 'PUT /plan/day':
+        route_plan_day_update();
 
     case 'GET /import':
         route_import_status();

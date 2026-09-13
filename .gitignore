@@ -21,6 +21,10 @@
 # Zugangsdaten der PHP-API – Vorlage liegt als api/config.example.php daneben
 /api/config.php
 
+# Hochgeladene Bilder und PDFs – gehören dem Betrieb, nicht dem Quellcode
+/uploads/*
+!/uploads/.gitkeep
+
 # Von Werkzeugen erzeugt
 *.tsbuildinfo
 next-env.d.ts

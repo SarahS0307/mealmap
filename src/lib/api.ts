@@ -28,6 +28,10 @@ export type ApiUser = {
   id: string;
   name: string;
   hasApiKey: boolean;
+  /** Bundesland als Kürzel – bestimmt, welche Feiertage gelten. */
+  state: string;
+  /** Persönliche Gewohnheiten als Freitext, vom Nutzer selbst formuliert. */
+  habits: string | null;
 };
 
 export type ApiCategory = {
@@ -101,6 +105,108 @@ export type RecipeFilter = {
   freezable?: boolean | null;
   minRating?: number | null;
   maxMinutes?: number | null;
+};
+
+/** Ein Eintrag im Meal-Prep-Plan. */
+export type ApiPlanEntry = {
+  id: string;
+  cookDate: string | null;
+  eatDate: string;
+  mealSlot: MealSlotWert;
+  recipeId: string | null;
+  recipeTitle: string | null;
+  freeText: string | null;
+  portionCount: number;
+  /** Namentlich genannte Mitesser. */
+  forWhom: string[];
+  /** Weitere Esser ohne Namen, etwa Besuch. */
+  guestCount: number;
+  /** Woraus die Mahlzeit besteht, wenn sie aus dem Vorrat kommt. */
+  fromStock: ApiPlanEntryStock[];
+  status: "suggested" | "confirmed";
+  isAbsent: boolean;
+  cookedAt: string | null;
+  eatenAt: string | null;
+};
+
+export type MealSlotWert =
+  | "breakfast"
+  | "snack_am"
+  | "lunch"
+  | "snack_pm"
+  | "dinner"
+  | "other";
+
+export type ApiPlanDay = {
+  date: string;
+  isShoppingDay: boolean;
+  note: string | null;
+  /** Name des Feiertags, sonst null. Kommt vom Server – die Tabelle der
+   *  Feiertage steht nur dort, in api/lib/feiertage.php. */
+  holiday: string | null;
+  entries: ApiPlanEntry[];
+};
+
+/** Ein Kochtermin, der an einem anderen Tag liegt als das Essen. */
+export type ApiCookDate = {
+  id: string;
+  cookDate: string;
+  eatDate: string;
+  mealSlot: MealSlotWert;
+  portionCount: number;
+  recipeTitle: string | null;
+  cookedAt: string | null;
+};
+
+/** Was beim Anlegen und Ändern eines Plan-Eintrags an den Server geht. */
+/** Ein Vorratsposten, der zu einer geplanten Mahlzeit gehört. */
+export type ApiPlanEntryStock = {
+  stockItemId: string;
+  name: string;
+  portions: number;
+  unit: string | null;
+  location: string | null;
+  /** Wie viel davon noch da ist. Null, wenn der Posten gelöscht wurde. */
+  available: number | null;
+  /** Gesetzt, sobald abgebucht wurde. */
+  consumedAt: string | null;
+};
+
+/** Ein Posten im Vorrat. Gezählt wird in Portionen. */
+export type ApiStockItem = {
+  id: string;
+  name: string;
+  quantity: number;
+  unit: string | null;
+  location: string | null;
+  recipeId: string | null;
+  recipeTitle: string | null;
+  bestBefore: string | null;
+  createdAt: string;
+};
+
+export type StockInput = {
+  name: string;
+  quantity: number;
+  unit?: string | null;
+  location?: string | null;
+  recipeId?: string | null;
+  bestBefore?: string | null;
+};
+
+export type PlanEntryInput = {
+  eatDate: string;
+  cookDate?: string | null;
+  mealSlot: MealSlotWert;
+  recipeId?: string | null;
+  freeText?: string | null;
+  portionCount?: number;
+  forWhom?: string[];
+  guestCount?: number;
+  /** Woraus die Mahlzeit besteht. Weglassen lässt die Zuordnung unverändert. */
+  fromStock?: { stockItemId: string; portions: number }[];
+  isAbsent?: boolean;
+  status?: "suggested" | "confirmed";
 };
 
 /** Ein Rezept im Papierkorb. */
@@ -199,6 +305,23 @@ export const api = {
   rename: (name: string) =>
     request<{ user: ApiUser }>("/user", { method: "PATCH", body: { name } }),
 
+  /** Die sechzehn Bundesländer für die Auswahl in den Einstellungen. */
+  states: () => request<{ states: { code: string; name: string }[] }>("/states"),
+
+  /** Speichert das Bundesland – es entscheidet über die Feiertage. */
+  saveState: (state: string) =>
+    request<{ user: ApiUser }>("/user/state", { method: "PUT", body: { state } }),
+
+  /**
+   * Speichert die persönlichen Gewohnheiten als Freitext. Der Vorschlagsmotor
+   * gibt sie an die KI weiter, statt Annahmen im Code zu treffen.
+   */
+  saveHabits: (habits: string) =>
+    request<{ user: ApiUser }>("/user/habits", {
+      method: "PUT",
+      body: { habits },
+    }),
+
   saveApiKey: (apiKey: string) =>
     request<{ hasApiKey: boolean }>("/user/api-key", {
       method: "PUT",
@@ -231,6 +354,125 @@ export const api = {
       method: "DELETE",
       body: { moveToCategoryId: moveToCategoryId ?? "", force: force ?? false },
     }),
+
+  // --- Plan ---
+
+  plan: (from: string, days = 14) =>
+    request<{
+      from: string;
+      to: string;
+      days: ApiPlanDay[];
+      cookDates: ApiCookDate[];
+    }>(`/plan?from=${from}&days=${days}`),
+
+  createPlanEntry: (input: PlanEntryInput) =>
+    request<{ entry: ApiPlanEntry }>("/plan/entries", {
+      method: "POST",
+      body: input,
+    }),
+
+  updatePlanEntry: (id: string, input: PlanEntryInput) =>
+    request<{ entry: ApiPlanEntry }>(`/plan/entries/${id}`, {
+      method: "PATCH",
+      body: input,
+    }),
+
+  deletePlanEntry: (id: string) =>
+    request<{ deleted: boolean }>(`/plan/entries/${id}`, { method: "DELETE" }),
+
+  /** Hakt gekocht oder gegessen ab – oder nimmt es zurück. */
+  markPlanEntry: (id: string, what: "cooked" | "eaten", value: boolean) =>
+    request<{ entry: ApiPlanEntry }>(`/plan/entries/${id}/mark`, {
+      method: "PUT",
+      body: { what, value },
+    }),
+
+  /**
+   * Schlägt für eine Woche Rezepte vor. Füllt nur leere Slots – was schon
+   * geplant ist, bleibt unangetastet, auch bei mehrfachem Aufruf.
+   */
+  suggestPlan: (from: string, days = 7) =>
+    request<{
+      entries: ApiPlanEntry[];
+      created: number;
+      reason?: "voll" | "keine_rezepte";
+    }>("/plan/suggest", { method: "POST", body: { from, days } }),
+
+  /** Verwirft alle unbestätigten Vorschläge eines Zeitraums. */
+  clearPlanSuggestions: (from: string, days = 7) =>
+    request<{ deleted: number }>(
+      `/plan/suggestions?from=${from}&days=${days}`,
+      { method: "DELETE" },
+    ),
+
+  /** Macht aus einem Vorschlag einen festen Eintrag. */
+  confirmPlanEntry: (id: string) =>
+    request<{ entry: ApiPlanEntry }>(`/plan/entries/${id}/confirm`, {
+      method: "PUT",
+    }),
+
+  /**
+   * Setzt oder entfernt den Einkaufstag.
+   *
+   * An einem Feiertag antwortet der Server mit 409 und `needsDecision`, statt
+   * es einfach zu tun – erst ein `trotzFeiertag` setzt es durch. Sonntage
+   * weist er immer ab.
+   */
+  // --- Vorrat ---
+
+  stock: () =>
+    request<{
+      items: ApiStockItem[];
+      locations: string[];
+      unit: string;
+    }>("/stock"),
+
+  createStockItem: (input: StockInput) =>
+    request<{ item: ApiStockItem }>("/stock", { method: "POST", body: input }),
+
+  updateStockItem: (id: string, input: StockInput) =>
+    request<{ item: ApiStockItem }>(`/stock/${id}`, {
+      method: "PATCH",
+      body: input,
+    }),
+
+  deleteStockItem: (id: string) =>
+    request<{ deleted: boolean }>(`/stock/${id}`, { method: "DELETE" }),
+
+  /** Bucht Portionen ab, ohne Umweg über den Plan – aufgegessen, weggeworfen. */
+  takeStock: (id: string, quantity: number) =>
+    request<{ taken: number; item: ApiStockItem | null }>(`/stock/${id}/take`, {
+      method: "PUT",
+      body: { quantity },
+    }),
+
+  /** Friert ein, was von einem gekochten Eintrag übrig ist. */
+  freezePlanEntry: (
+    id: string,
+    input: { portions: number; name?: string; location?: string; bestBefore?: string },
+  ) =>
+    request<{ item: ApiStockItem }>(`/plan/entries/${id}/freeze`, {
+      method: "POST",
+      body: input,
+    }),
+
+  setPlanDay: (
+    date: string,
+    isShoppingDay: boolean,
+    optionen?: { note?: string; trotzFeiertag?: boolean },
+  ) =>
+    request<{ day: { date: string; isShoppingDay: boolean; note: string | null } }>(
+      "/plan/day",
+      {
+        method: "PUT",
+        body: {
+          date,
+          isShoppingDay,
+          note: optionen?.note,
+          trotzFeiertag: optionen?.trotzFeiertag,
+        },
+      },
+    ),
 
   // --- Dateien ---
 

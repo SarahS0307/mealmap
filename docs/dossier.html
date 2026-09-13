@@ -203,14 +203,14 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
 <div class="wrap">
 
 <header>
-  <p class="eyebrow">Projektdossier &middot; Stand 13. September 2026, 09:30 Uhr</p>
+  <p class="eyebrow">Projektdossier &middot; Stand 14. September 2026, 20:15 Uhr</p>
   <h1>MealMap</h1>
   <p class="lede">Rezepte, Meal-Prep-Plan und Einkaufsliste in einer Webapp. Dieses Dossier hält fest, was entschieden ist, was gebaut wird und was noch offen liegt.</p>
   <div class="meta">
     <span><b>Ordner</b> ~/Sites/MealMap</span>
     <span><b>Quelle</b> mealmap-konzept.md</span>
-    <span><b>Phase</b> 0 bis 3 erledigt</span>
-    <span><b>Lokal</b> localhost:3000</span>
+    <span><b>Phase</b> 0 bis 5 erledigt</span>
+    <span><b>Lokal</b> localhost:8888/MealMap</span>
   </div>
 </header>
 
@@ -218,7 +218,8 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
   <h2>Kurzfassung</h2>
   <p class="h2sub">Drei Module, ein Nutzer pro Datenbestand</p>
   <p>MealMap hat eine Hauptnavigation aus <strong>Rezepte</strong>, <strong>Plan</strong> und <strong>Einkaufsliste</strong>, dazu eine Einstellungen-Seite. Angemeldet wird sich nur über den Namen, ohne Passwort; jede Entität hängt an einer <code>user_id</code>, die Nutzer sind vollständig voneinander getrennt.</p>
-  <p>Der rote Faden ist der Kochrhythmus: sonntags kochen, meist zwei Gerichte, die jeweils zweimal mittags gegessen werden. Daraus ergeben sich Portionen, Vorratsbestand und am Ende die Einkaufsliste — jeder automatische Vorschlag muss aber bestätigt werden, bevor er als fest gilt.</p>
+  <p>Der rote Faden ist das Vorkochen: <strong>Kochtermin und Essenstermin stehen getrennt</strong>, daraus ergeben sich Portionen, Vorratsbestand und am Ende die Einkaufsliste. Jeder automatische Vorschlag muss bestätigt werden, bevor er als fest gilt.</p>
+  <p><strong>Welcher Rhythmus dahintersteckt, gibt die App nicht vor.</strong> Sarahs eigener — sonntags kochen, zwei Gerichte, jeweils zweimal mittags — stand anfangs fest im Code und ist wieder herausgenommen worden: solche Gewohnheiten sind bei jeder Person anders. Sie stehen jetzt als Freitext in den Einstellungen.</p>
 </section>
 
 <section>
@@ -229,7 +230,7 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
   <div class="stack">
     <div class="item note">
       <h3>Wo das Projekt steht</h3>
-      <p><strong>Phase 0 bis 3 sind fertig und geprüft.</strong> Grundgerüst, Design nach Moodboard, Datenbankschema mit zwölf Tabellen, PHP-API mit 26 Endpunkten, Nutzerverwaltung mit Namensabfrage als Zugangsschranke, vollständiges Rezeptmodul mit Kategorien, Bewertung, Kochmodus, Filtern, Druckansicht, Uploads und KI-Import. <strong>Als Nächstes: Phase 4 — Meal-Prep-Plan, datumsweise Ansicht, manuelles Einplanen, Marker.</strong></p>
+      <p><strong>Phase 0 bis 5 sind fertig und geprüft.</strong> Grundgerüst, Design nach Moodboard, Datenbankschema mit zwölf Tabellen, PHP-API mit 35 Endpunkten, Nutzerverwaltung mit Namensabfrage als Zugangsschranke, vollständiges Rezeptmodul mit Kategorien, Bewertung, Kochmodus, Filtern, Druckansicht, Uploads und KI-Import, dazu der Meal-Prep-Plan mit getrenntem Koch- und Essenstermin in zwei Ansichten — Monatskalender für den Überblick, Tagesansicht zum Bearbeiten. Dazu aus Phase 5: der wochenweise Vorschlagsmotor mit „Reste zuerst“, das Einplanen direkt vom Rezept aus, der Vorrat als vierte Hauptseite und die Mengenskalierung beim Kochen. <strong>Als Nächstes: Phase 6 — die Einkaufsliste.</strong></p>
     </div>
 
     <div class="item note">
@@ -352,6 +353,16 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       <span class="why">Nicht im Repo: <code>node_modules</code>, die erzeugten Ordner <code>.next</code>, <code>out</code> und <code>dist</code>, sowie <code>api/config.php</code> mit den Zugangsdaten. Im Repo bleiben dagegen <code>.env.example</code> und <code>.env.development</code> — beide enthalten keine Geheimnisse und werden auf jedem Rechner gebraucht.</span></dd>
     </div>
     <div class="dec">
+      <dt>Persönliche Gewohnheiten</dt>
+      <dd><strong>Freitext in den Einstellungen, nichts davon im Code</strong>
+      <span class="why">Mittags auswärts, kein Frühstück zuhause, sonntags vorkochen — das stand anfangs fest im Vorschlagsmotor, übernommen aus dem Konzept. Sarah hat es zurückgenommen: solche Regeln sind bei jeder Person anders. Sie stehen jetzt als Freitext an <code>users.habits</code> und gehen beim Vorschlagen an die KI. Die Trennlinie: <strong>Tatsachen</strong> dürfen in den Code (Wochentage, gesetzliche Feiertage, Ladenschluss — gelten für alle), <strong>Gewohnheiten</strong> nie. Ohne Text verhält sich der Motor neutral, statt etwas anzunehmen.</span></dd>
+    </div>
+    <div class="dec">
+      <dt>Feiertage</dt>
+      <dd><strong>Eigene Tabelle im PHP, Bundesland je Nutzer einstellbar</strong>
+      <span class="why">Vorgabe ist Baden-Württemberg, änderbar in den Einstellungen. Die sechzehn Länder stehen in <code>api/lib/feiertage.php</code>, die beweglichen Feiertage über die Gaußsche Osterformel — <code>easter_date()</code> aus PHP wäre kürzer, setzt aber die Kalender-Erweiterung voraus, auf die bei Strato kein Verlass ist. Die Tabelle steht <em>nur</em> serverseitig: die Plan-Ausgabe liefert je Tag <code>holiday</code>, <code>isWorkday</code> und <code>canShop</code> mit, damit das Frontend nichts nachbauen muss. Nicht abgebildet sind Feiertage, die nur einzelne Gemeinden betreffen (Augsburger Friedensfest, Mariä Himmelfahrt in Bayern) — die hängen am Ort, nicht am Land.</span></dd>
+    </div>
+    <div class="dec">
       <dt>Versionierung</dt>
       <dd><strong>Git liegt vollständig bei Sarah</strong>
       <span class="why">Keine Commits, keine Branches, kein <code>git init</code> von Claude. Nur die <code>.gitignore</code> wird als Datei angelegt.</span></dd>
@@ -404,20 +415,31 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       </div>
     </div>
 
-    <div class="phase">
+    <div class="phase done">
       <div class="num">04</div>
       <div>
-        <h3>Plan, Basis <span class="chip hold">als Nächstes</span></h3>
-        <p>Datumsweise Ansicht mit den fünf Slots plus Sonstiges-Liste, manuelles Einplanen, Trennung von Koch- und Essenstermin, Marker für Für-wen, Abwesenheit und Einkaufstag. Standardvorbelegung: kein Frühstück zuhause, Mittagessen im Geschäft.</p>
-        <p style="margin-top:10px"><strong>Gekocht-Markierung:</strong> Jeder Eintrag zeigt, ob das Rezept für diesen Tag schon gekocht wurde. <strong>Gesetzt wird sie von Hand</strong> — die App leitet nichts daraus ab, dass ein Datum vergangen ist. Die Felder dafür stehen seit Phase 1 bereit: <code>plan_entries.cooked_at</code> und <code>eaten_at</code>. Sie sind zugleich der Auslöser für den Vorrat: Kochtermin abhaken erzeugt einen Bestand, Essenstermin abhaken baut ihn wieder ab (Phase 5).</p>
+        <h3>Plan, Basis <span class="chip go">erledigt</span></h3>
+        <p>Datumsweise Ansicht, eine Woche auf einmal, mit den fünf Slots plus Sonstiges. Je Slot sind <strong>mehrere Einträge</strong> möglich — Suppe und Crêpe nebeneinander, oder für Annika Erbsensuppe und für Sarah und Mama Kartoffelsuppe. Einträge nehmen ein Rezept, freien Text oder Vorratsposten, dazu Portionen und für wen gekocht wird — <strong>namentlich Genannte und zusätzlich eine Anzahl weiterer Personen</strong> für Besuch ohne Namen. Beides steht getrennt, weil eine Anzahl keine Liste ist; später wird aus den Namen eine Auswahl aus dem Haushalt, die Anzahl bleibt daneben. <strong>Kochtermin und Essenstermin stehen getrennt</strong> — sonntags kochen, dienstags essen; der Kochtag erscheint auch beim Kochtermin selbst, mit Hinweis, für wann gekocht wird. Marker für Abwesenheit und Einkaufstag. <strong>Sonntage sind als Einkaufstag gesperrt</strong>, weil die Läden zuhaben; an <strong>Feiertagen</strong> fragt die App nach, statt zu sperren — „teilweise eingeschränkt“ heißt eben nicht „geht nicht“. Am Sonntag erscheint gar kein Knopf, statt eines, der ohnehin nicht geht. Feiertage sind im Kalender an der farbigen Tageszahl zu erkennen und werden beim Namen genannt. Leere Slots bleiben leer — die früheren Hinweise („kein Frühstück zuhause“, „noch nichts vorgekocht“) sind bewusst entfernt worden: das waren Annahmen über eine bestimmte Person, keine Eigenschaften der App.</p>
+        <p style="margin-top:10px"><strong>Gekocht- und Gegessen-Markierung:</strong> Jeder Eintrag lässt sich abhaken, beides einzeln und beides umkehrbar. <strong>Von Hand</strong> — die App leitet nichts daraus ab, dass ein Datum vergangen ist. In Phase 5 werden diese Haken zum Auslöser für den Vorrat: Kochen erzeugt einen Bestand, Essen baut ihn ab.</p>
+        <p style="margin-top:10px"><strong>Zwei Ansichten:</strong> Der <strong>Kalender</strong> zeigt den ganzen Monat als Raster und darin nur die Beschriftungen — „Frühstück geplant“, „Mittagessen vorgeschlagen“, „Abendessen gekocht“, „Mittag nicht da“. Er ist die Startansicht und dient dem Überblick. Aufgebaut wie der Kalender auf dem Telefon: oben das Raster, das sich immer der Breite anpasst, darunter die Liste des gewählten Tages. Auf schmalen Displays stehen in den Zellen nur farbige Punkte — für Text ist dort kein Platz —, die Beschriftungen im Klartext stehen dann in der Liste darunter; ab mittlerer Breite stehen sie zusätzlich in den Zellen selbst. Ein Tippen wählt den Tag, „Tag bearbeiten“ springt in die Tagesansicht. Die <strong>Tagesansicht</strong> ist die ausführliche Wochendarstellung zum Bearbeiten und nennt jeden Tag mit Wochentag und Datum, heute/morgen/gestern zusätzlich als Marke. <strong>Wochen beginnen immer montags</strong>, nie sonntags — in beiden Ansichten und auch dann, wenn man mitten in der Woche einsteigt.</p>
       </div>
     </div>
 
     <div class="phase">
       <div class="num">05</div>
       <div>
-        <h3>Plan, Automatik <span class="chip">geplant</span></h3>
-        <p>Vorrats- und Bestandsübersicht, automatische Mengenskalierung, Vorschlagsmotor nach dem Sonntagsrhythmus mit Resten zuerst. Vorschläge sind gestrichelt dargestellt und werden erst durch Bestätigung fest.</p>
+        <h3>Plan, Automatik <span class="chip go">erledigt</span></h3>
+        <p><strong>Fertig: der Vorschlagsmotor</strong>, in zwei Betriebsarten. „Woche vorschlagen“ füllt in der Tagesansicht <em>nur</em> Leeres — Geplantes bleibt stehen, auch bei mehrfachem Start. Alles entsteht als Vorschlag, einzeln übernehmbar oder als ganze Woche verwerfbar; Bestätigtes und schon Abgehaktes bleibt beim Verwerfen verschont.</p>
+        <p style="margin-top:10px"><strong>Ohne Gewohnheiten</strong> läuft eine schlichte Rotation: freie Mittag- und Abendslots bekommen ein Rezept, gekocht wird am selben Tag. Die Auswahl dreht sich durch die Sammlung — zuerst, was nie oder am längsten nicht geplant war, bei Gleichstand entscheidet die Bewertung; mittags und abends landet nie dasselbe Gericht. Bewusst <em>ohne</em> Annahmen darüber, wann jemand auswärts isst oder frühstückt.</p>
+        <p style="margin-top:10px"><strong>Mit Gewohnheiten und API-Schlüssel</strong> liest die KI den Freitext aus den Einstellungen und verteilt danach: sie darf alle sechs Slots belegen, welche freilassen, Abwesenheiten setzen und Kochtermine vorziehen — etwa für Meal Prep, wenn der Text das so beschreibt. Sie bekommt dazu nur Tatsachen mit: Wochentag, Feiertag, der letzte Sonntag als mögliches Kochdatum. Was daraus folgt, steht allein im Gewohnheitstext. <strong>Die Antwort wird geprüft, nicht geglaubt:</strong> erfundene Rezepte, fremde Slots, Tage außerhalb der Woche und doppelt belegte Slots fliegen raus, ein Kochtermin nach dem Essenstermin wird zurechtgerückt, absurde Portionszahlen auf 1 gesetzt. Lieber ein Vorschlag weniger als ein kaputter Eintrag.</p>
+        <p style="margin-top:10px"><strong>Ebenfalls fertig: Einplanen vom Rezept aus.</strong> Nach dem Anlegen eines Rezepts fragt die Rezeptansicht von selbst, ob es gleich eingeplant werden soll — diese oder nächste Woche, Mittag oder Abend. Belegte Slots sind nicht gesperrt, sondern austauschbar; im Knopf steht, was ersetzt würde. Gekocht wird am selben Tag; wer vorkochen will, verschiebt den Kochtermin danach im Plan. Über den Knopf „Einplanen“ ist das später jederzeit wieder erreichbar, auch für ältere Rezepte.</p>
+        <p style="margin-top:10px"><strong>Fertig: der Vorrat</strong>, als <strong>vierte Hauptseite</strong> neben Rezepte, Plan und Einkaufsliste. Gezählt wird in <strong>Portionen</strong> — so gibt Sarah es an: „vier Portionen Reis eingefroren“. Andere Einheiten sind möglich, damit später auch der Vorratsschrank hineinpasst, aber die Portion ist der Normalfall. Posten sind nach Ort gruppiert (Gefrierschrank, Kühlschrank, Vorratsschrank), abgelaufene Haltbarkeitsdaten fallen farblich auf. Gleichartige Posten werden zusammengefasst: zweimal Reis mit gleichem Ort und Datum ergibt eine Zeile mit der Summe, keine zweite.</p>
+        <p style="margin-top:10px"><strong>Wie der Vorrat wächst und schrumpft:</strong> An jedem als gekocht abgehakten Plan-Eintrag steht „einfrieren“ — Portionszahl angeben, fertig. Umgekehrt sinkt der Bestand von selbst, sobald eine Mahlzeit als <em>gegessen</em> abgehakt wird, die aus dem Vorrat kommt; nimmt man den Haken zurück, kommt er wieder. Doppeltes Abbuchen ist ausgeschlossen (<code>plan_entry_stock.consumed_at</code> merkt sich, was schon gebucht ist). Von Hand geht beides ebenfalls — kein Bestand stimmt ohne Nachpflege.</p>
+        <p style="margin-top:10px"><strong>Mahlzeiten aus mehreren Vorratsposten.</strong> Ein Plan-Eintrag ist nicht mehr zwingend ein Rezept: „1 Portion Reis, 1 Portion Hackfleisch, 1 Portion Salsasoße aus dem Gefrierschrank“ sind drei Posten in einem Eintrag. Dafür gibt es die neue Tabelle <code>plan_entry_stock</code>; <code>recipe_id</code> bleibt daneben bestehen, beides zusammen ist erlaubt — etwa ein Rezept plus Reis als Beilage.</p>
+        <p style="margin-top:10px"><strong>Fertig: Reste zuerst.</strong> Der Vorschlagsmotor verplant erst, was im Vorrat liegt, und lässt erst danach neu kochen — von den Resten zuerst das, was am ehesten abläuft. Schon verplante Portionen zählen mit: was in einer geplanten, aber noch nicht gegessenen Mahlzeit steckt, wird kein zweites Mal vorgeschlagen. Abgebucht wird trotzdem erst beim Gegessen-Haken, nicht beim Planen. In der KI-Betriebsart bekommt das Modell den Vorrat als Hinweis mit (<code>inStock</code>), darf ihn aber nicht selbst zuordnen — es soll solche Tage lieber freilassen, weil eine KI-Zuordnung nicht sauber verbucht würde.</p>
+        <p style="margin-top:10px"><strong>Fertig: die Mengenskalierung.</strong> An jedem Plan-Eintrag mit Rezept steht „kochen“ und führt in den Kochmodus — <strong>mit der geplanten Portionszahl</strong>, nicht mit der Vorgabe des Rezepts. Wer vier Portionen einplant, sieht dort die Zutaten für vier. Gerundet wird auf Abmessbares (<code>src/lib/portions.ts</code>): aus 133,33 g werden 135 g, halbe Zahlen erscheinen als ½. Der Haken daneben heißt jetzt „als gekocht“ statt „kochen“ — er markiert, er kocht nicht.</p>
+        <p style="margin-top:10px"><strong>Vorkochen auf Vorrat, wenn Tage ausfallen:</strong> Sarahs Fall — ist sie ein Wochenende weg, kommt sie nicht zum Kochen und hätte gern vorher eingefroren, was sie danach braucht. Die KI-Betriebsart bekommt dafür die Abwesenheiten der Woche <em>und der Folgewoche</em> mit und wird angewiesen, vor blockierten Tagen mehr Portionen einzuplanen. Die schlichte Rotation kann das <strong>nicht</strong>: Sie kocht am selben Tag und kennt keinen Kochrhythmus — wann jemand vorkocht, ist eine Gewohnheit und steht bewusst nicht im Code. Ohne Gewohnheitstext bleibt es also bei manuellem Vorkochen über den Kochtermin.</p>
+
       </div>
     </div>
 
@@ -426,6 +448,7 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       <div>
         <h3>Einkaufsliste, Basis <span class="chip">geplant</span></h3>
         <p>Automatische Generierung aus bestätigten Plan-Einträgen, Zusammenfassung gleicher Zutaten zu einem Posten, anteiliger Abzug beim Entfernen eines Rezepts, frei hinzufügbare manuelle Posten.</p>
+        <p style="margin-top:10px"><strong>Was der Vorrat verschluckt, bleibt sichtbar:</strong> Zutaten, die nicht auf der Liste landen, weil sie laut Vorrat noch zuhause sind, verschwinden nicht stillschweigend. Sie stehen ausgegraut in einer zweiten Tabelle darunter, und ein Klick schiebt sie doch auf die Einkaufsliste — für den Fall, dass der Bestand nicht stimmt oder die Packung schon angebrochen ist. <strong>Das ist die Notbremse für einen Bestand, der nicht stimmt</strong>, und damit die Voraussetzung dafür, dem Vorrat überhaupt trauen zu können. Sinnvoll baubar, sobald der Vorrat aus Phase 5 steht.</p>
       </div>
     </div>
 
@@ -509,11 +532,57 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
   <h2>Ideen &amp; Backlog</h2>
   <p class="h2sub">Bewusst nicht im ersten Wurf</p>
   <p>Sammelstelle für alles, was später kommen soll. Was du nebenbei erwähnst und nicht sofort umgesetzt haben willst, landet automatisch hier. <span class="tag note">vorgemerkt</span> heißt: fest eingeplant, nur noch nicht dran. <span class="tag">Backlog</span> heißt: bewusst nach dem MVP.</p>
+  <p>Die drei Rezept-Punkte am Ende trugen bis eben die Markierung „Phase 3“ beziehungsweise „3b+“. Diese Phase ist abgeschlossen — sie sind also nicht vergessen worden, sondern bewusst nicht mitgelaufen. Sie stehen jetzt als Backlog und kämen in einem späteren Durchgang am Rezeptmodul dran, nicht zwischendurch.</p>
   <p>Das Datenmodell ist auf die beiden Sharing-Punkte bereits vorbereitet — <code>shared_with</code> liegt an <code>Recipe</code> und <code>ShoppingListItem</code> und bleibt vorerst ungenutzt.</p>
   <div class="stack">
     <div class="item later">
+      <h3>Rundgang durch die App <span class="tag">Backlog</span></h3>
+      <p>Eine Tour, die alle Funktionen erklärt und zeigt — nicht nur beim ersten Öffnen, sondern <strong>jederzeit wieder startbar</strong>, über ein eigenes Symbol neben den Einstellungen in der Kopfzeile.</p>
+      <p style="margin-top:10px"><strong>Was den Zuschnitt bestimmt:</strong> Die App hat inzwischen vier Module, und vieles steckt in Feinheiten, die man von selbst nicht findet — dass Koch- und Essenstermin auseinanderfallen dürfen, dass je Slot mehrere Einträge möglich sind, dass eine Mahlzeit aus Vorratsposten bestehen kann, dass Gewohnheiten den Vorschlagsmotor steuern. Genau solche Stellen lohnen eine Tour; die Navigation erklärt sich von selbst.</p>
+      <p style="margin-top:10px"><strong>Zu klären:</strong> <em>Wo der Stand liegt.</em> Ob jemand die Tour gesehen hat, gehört an den Nutzer in die Datenbank, nicht in den Browser-Speicher — sonst fängt sie auf dem Telefon wieder von vorn an. <em>Woran die Schritte hängen.</em> Eine Tour, die auf Bildschirmpositionen zeigt, zerbricht beim nächsten Umbau; robuster sind benannte Anker im Markup, die bewusst gepflegt werden. <em>Womit sie etwas zeigt.</em> Auf einem leeren Konto gibt es nichts vorzuführen — entweder die Tour erklärt dann nur, oder sie legt Beispieldaten an, die hinterher wieder verschwinden müssen. <em>Und die Barrierefreiheit:</em> Solche Touren sind mit Tastatur und Screenreader berüchtigt schlecht bedienbar, weil sie den Fokus an sich reißen. Das gehört von Anfang an mitgedacht, siehe den Punkt „Barrierefreiheit und DSGVO prüfen“.</p>
+      <p style="margin-top:10px"><strong>Zeitpunkt:</strong> Sinnvoll erst, wenn die Funktionen stehen — eine Tour über eine Oberfläche, die sich noch ändert, muss bei jeder Änderung mitgepflegt werden. Nach Phase 7 also, und vor dem Livegang, falls außer Sarah noch jemand die App benutzen soll.</p>
+    </div>
+
+    <div class="item later">
+      <h3>Anlässe planen: Weihnachten, Geburtstag, Besuch <span class="tag">Backlog</span></h3>
+      <p>Ein Festessen planen, nicht nur eine Mahlzeit. Sarahs Beispiel: an Weihnachten kommt die Familie mit zehn Personen, es gibt Suppe, Hauptgang, Nachtisch — vielleicht noch Vorspeise und Gebäck.</p>
+      <p style="margin-top:10px"><strong>Das trifft das Datenmodell an einer Stelle, die bisher nirgends gebraucht wurde.</strong> Heute gilt: ein Eintrag ist ein Rezept in einem Slot. Ein Menü ist aber <em>mehrere</em> Rezepte, die zu <em>einer</em> Mahlzeit gehören, in einer Reihenfolge. Die Slots (Frühstück, Snack, Mittag, Snack, Abend, Sonstiges) bilden den Tagesablauf ab, keine Gänge — mehrere Einträge im Abendslot wären sie nur nebeneinander, nicht als Menü. Es bräuchte also eine Klammer darüber: einen Anlass mit Datum, Personenzahl und einer geordneten Liste von Gängen.</p>
+      <p style="margin-top:10px"><strong>Was daran hängt:</strong> Die Mengenskalierung aus Phase 5 muss für zehn Personen tragen, nicht nur für zwei — und je Gang unterschiedlich, weil man von der Suppe weniger braucht als vom Hauptgang. Die Einkaufsliste sollte sich für so einen Anlass getrennt ausweisen lassen; der Wocheneinkauf und der Weihnachtseinkauf gehören nicht in eine Liste. Und die Gäste sind keine Nutzer der App: <code>for_whom</code> hält zwar freie Namen, aber „zehn Personen“ ist eher eine Zahl als eine Namensliste. Zum Punkt <a href="#">Haushalte</a> ist das die Gegenrichtung — dort geht es um feste Mitesser, hier um einmaligen Besuch.</p>
+      <p style="margin-top:10px"><strong>Schöner Anknüpfungspunkt:</strong> Die Feiertage kennt die App seit heute je Bundesland. Sie könnte also von sich aus fragen — „Weihnachten ist in drei Wochen, willst du planen?“ — statt darauf zu warten, dass jemand daran denkt. Auch der Kochtermin wird hier wichtiger als sonst: Vieles lässt sich Tage vorher vorbereiten, und genau dafür stehen Koch- und Essenstermin schon getrennt.</p>
+      <p style="margin-top:10px"><strong>Zu klären:</strong> Ob ein Anlass eine eigene Tabelle wird oder eine Gruppierung über vorhandene Plan-Einträge. Ob Gänge eigene Slots bekommen oder eine Reihenfolge innerhalb eines Slots. Und ob sich ein gelungenes Menü als Ganzes speichern lässt, um es im nächsten Jahr wieder hervorzuholen — das wäre der eigentliche Gewinn, denn ein Weihnachtsessen plant man einmal im Jahr und erinnert sich nicht mehr.</p>
+    </div>
+
+    <div class="item later">
+      <h3>Haushalte: mehrere Personen, ein Plan <span class="tag">Backlog</span></h3>
+      <p>Nutzer lassen sich in der Datenbank einem <strong>Haushalt</strong> zuordnen — Sarahs Beispiel: sie, Papa, Mama, Annika. Daraus folgt dreierlei:</p>
+      <p style="margin-top:10px"><strong>1. Gemeinsame Einkaufsliste.</strong> Alle im Haushalt sehen dieselbe Liste und arbeiten daran, statt vier eigene zu führen. Das ist die größere Fassung des Backlog-Punkts „Einkaufslisten kombinieren“ und ersetzt ihn: dort ging es um zwei Nutzer, die ihre Listen auf Wunsch zusammenlegen, hier um einen dauerhaft geteilten Bestand. Die Tabelle <code>shopping_list_contributions</code> liegt bereits im Schema und hält fest, welcher Posten aus wessen Rezept stammt — genau das braucht es, wenn mehrere beitragen.</p>
+      <p style="margin-top:10px"><strong>2. Für wen gekocht wird, wird zur echten Zuordnung.</strong> Beim Planen wählt man Personen aus dem Haushalt aus: „ich koche für Mama und mich“. Mama sieht daraufhin <em>in ihrem eigenen Plan</em>, dass jemand Rezept XY kocht, und muss dort selbst nichts eintragen. Das Feld <code>for_whom</code> an <code>plan_entries</code> gibt es schon, hält aber bislang nur freie Namen als JSON-Liste — es müsste auf echte Nutzerkennungen umgestellt werden. Ein Eintrag hätte dann einen Koch und mehrere Essende.</p>
+      <p style="margin-top:10px"><strong>Auswählen lassen soll sich mehr als eine Person.</strong> Neben einzelnen Mitgliedern muss auch <strong>„der ganze Haushalt“</strong> als Ganzes wählbar sein — wer für alle kocht, will nicht vier Namen einzeln anklicken. Das ist keine Abkürzung für „alle aktuellen Mitglieder“, sondern ein eigener Wert: Kommt jemand dazu, gilt der Eintrag auch für ihn.</p>
+      <p style="margin-top:10px"><strong>4. Wer schon etwas geplant hat, ist sichtbar — ohne dass es sich ausschließt.</strong> Sarahs Beispiel: Sie trägt für Dienstagabend Pommes für sich ein. Mama will danach für den Haushalt kochen und <em>sieht dabei</em>, dass Sarah für sich schon etwas geplant hat. Sie kann Sarah trotzdem auswählen — danach steht bei beiden <em>beides</em> im Plan. Das ist wichtig: Der Hinweis warnt, er verbietet nicht. Zwei Einträge im selben Slot sind ohnehin erlaubt, das kann der Plan schon heute; neu wäre nur, dass man die Einträge der anderen überhaupt zu sehen bekommt.</p>
+      <p style="margin-top:10px"><strong>5. Rezeptsammlung mit dem Haushalt teilen.</strong> Nicht nur einzelne Rezepte weiterreichen (das ist der Punkt „Rezepte teilen“), sondern die Sammlung gemeinsam führen: Was einer anlegt, sehen alle. Zu klären wäre, ob das alles-oder-nichts ist oder ob es private Rezepte daneben geben soll, und wer ein geteiltes Rezept ändern darf.</p>
+      <p style="margin-top:10px"><strong>Die halbe Miete steht schon:</strong> Neben den Namen gibt es seit heute <code>guest_count</code> — eine Anzahl weiterer Personen ohne Namen, für Besuch. Die bleibt unverändert, wenn die Namen später zur Haushaltsauswahl werden: aus dem Freitextfeld wird eine Liste zum Anklicken, das Zahlenfeld daneben steht weiter für alle, die nicht zum Haushalt gehören. Deshalb war es sinnvoll, diese Hälfte vorzuziehen — sie hängt an keiner der offenen Fragen und muss später nicht umgebaut werden.</p>
+      <p style="margin-top:10px"><strong>3. Rückkanal und Zustand.</strong> Wer mitisst, kann dem Koch einen Kommentar hinterlassen („ohne Mais“), der <strong>im Kochmodus</strong> sichtbar wird — dort wird er gebraucht, nicht in der Liste. Umgekehrt sehen die Mitessenden den Zustand: schon eingekauft, schon gekocht, eingefroren. Gekocht und gegessen werden bereits abgehakt; <em>eingekauft</em> und <em>eingefroren</em> wären neu — Einfrieren hängt am Vorrat aus Phase 5, und <code>recipes.freezable</code> sagt bisher nur, ob ein Rezept sich überhaupt einfrieren lässt.</p>
+      <p style="margin-top:10px"><strong>Dazu sichtbar im Kopfbereich:</strong> „Personen in deinem Haushalt: …“, damit klar ist, mit wem man gerade plant.</p>
+      <p style="margin-top:10px"><strong>Haushalte verwalten die Nutzer selbst</strong> — anlegen, jemanden dazuholen, wieder austreten, alles über die Oberfläche. Das steht <em>nicht</em> im Widerspruch zu „Kein Selbstanlegen von Konten“: Wer die App überhaupt benutzen darf, entscheidet weiterhin allein die Nutzertabelle, die Sarah pflegt. Wer einmal drin ist, darf sich aber frei mit anderen Berechtigten zusammentun. Einladen heißt also: eine <em>vorhandene</em> Person dazubitten, nie eine neue anlegen. Nötig wird dafür eine Einladung mit Zustimmung — ungefragt in einen fremden Haushalt gezogen zu werden, wäre ein Datenleck, weil damit Plan und Einkaufsliste offenliegen.</p>
+      <p style="margin-top:10px"><strong>Zu klären:</strong> Was mit den Rezeptsammlungen geschieht: bleiben sie je Person getrennt (dann muss man ein Rezept teilen können, siehe „Rezepte teilen“) oder gehören sie dem Haushalt? Ebenso offen: Wer darf einen fremden Eintrag ändern oder löschen — nur der Koch oder alle? Und was passiert mit geteilten Einträgen, wenn jemand den Haushalt verlässt? Das ist der größte Einzelpunkt im Backlog und berührt fast jede Tabelle; sinnvoll erst nach Phase 7, wenn Plan und Einkaufsliste für eine Person stehen.</p>
+    </div>
+
+    <div class="item later">
+      <h3>Kompletter Lebensmittelbestand zuhause <span class="tag">Backlog</span></h3>
+      <p>Nicht nur der Meal-Prep-Vorrat, sondern <strong>alles, was zuhause steht</strong> — Vorratsschrank, Kühlschrank, Gefriertruhe. Einmal erfasst, dann fortlaufend gepflegt: Einkäufe erhöhen den Bestand, Kochen zieht ab. Daraus ließe sich die Einkaufsliste um das kürzen, was ohnehin da ist, und Rezepte vorschlagen, die sich aus dem Vorhandenen kochen lassen.</p>
+      <p style="margin-top:10px"><strong>Abgrenzung zur Vorratsübersicht aus Phase 5:</strong> Die ist bewusst klein — sie kennt nur, was aus einem Kochtermin übrig ist, und wird von den Gekocht-/Gegessen-Haken gefüllt. Dieser Punkt hier ist eine Stufe größer und braucht eine eigene Pflegeoberfläche. Die Tabelle <code>stock_items</code> liegt schon im Schema und könnte beides tragen; ob das sinnvoll ist oder ob es zwei getrennte Bestände braucht, ist offen.</p>
+      <p style="margin-top:10px"><strong>Kassenzettel abfotografieren:</strong> Sarahs Vorschlag, wie der Bestand ohne Tipparbeit wieder aufgefüllt wird — Bon hochladen, die KI liest Posten und Mengen heraus und bucht sie ein. Der Weg über die KI ist bereits gebaut: der Rezept-Import nimmt schon Bilder und PDFs entgegen (<code>api/routes/import.php</code>, <code>api/lib/claude.php</code>), es bräuchte ein zweites Schema für Bons. Die Tücke liegt in den Kassenbons selbst: Artikelnamen sind abgekürzt und je Kette anders („BIO ZWIEBELN 500G“, „Zwiebel lose“), Mengen stehen mal als Stück, mal als Gewicht, mal nur als Preis. Die Zutaten-Normalisierung aus <code>api/lib/ingredients.php</code> hilft dabei, reicht aber nicht — eine Bestätigungsliste vor dem Einbuchen wird nötig sein. <strong>Unabhängig davon muss der Bestand immer auch von Hand pflegbar bleiben</strong>: nachtragen, korrigieren, wegwerfen. Der Bon ist die Abkürzung, nicht der einzige Weg.</p>
+      <p style="margin-top:10px"><strong>Zu klären:</strong> Der Aufwand liegt nicht im Bauen, sondern im Pflegen — ein Bestand, der nicht stimmt, ist schlimmer als keiner. Wie kommen Einkäufe hinein, wenn gerade kein Bon da ist (etwa: erledigte Einkaufsliste bucht automatisch ein)? Wie wird abgezogen, wenn ein Rezept nur zum Teil gekocht wird? Wie geht die App mit angebrochenen Packungen und mit Haltbarkeit um? Sinnvoll wird das erst nach Phase 6/7, wenn die Einkaufsliste steht — die ist die natürliche Eingangstür für den Bestand.</p>
+    </div>
+
+    <div class="item later">
+      <h3>Anbindung an einen echten Kalender <span class="tag">Backlog</span></h3>
+      <p>Eine Verbindung zum Kalender, damit sich Abwesenheiten von selbst übertragen: steht dort ein Termin über Mittag, wird der Mittagsslot im Plan automatisch als „nicht da“ markiert, statt dass Sarah es von Hand nachträgt. Denkbar über ein abonniertes ICS-Feed, das serverseitig gelesen wird — das passt zur Architektur, weil es kein Node braucht. Zu klären wären der Umfang (nur lesen oder auch schreiben), welche Termine überhaupt als Abwesenheit zählen, und wie das mit den Vorschlägen zusammenspielt.</p>
+    </div>
+
+    <div class="item">
       <h3>Einkaufslisten kombinieren <span class="tag">Backlog</span></h3>
-      <p>Zwei Nutzer legen ihre Listen auf Wunsch zusammen, etwa für einen gemeinsamen Einkauf.</p>
+      <p>Zwei Nutzer legen ihre Listen auf Wunsch zusammen, etwa für einen gemeinsamen Einkauf. <strong>Geht weitgehend in „Haushalte“ auf</strong> — dort teilen sich mehrere Personen dauerhaft eine Liste. Eigenständig bleibt dieser Punkt nur für den Fall, dass zwei Leute <em>ohne</em> gemeinsamen Haushalt einmalig zusammen einkaufen.</p>
     </div>
     <div class="item later">
       <h3>Rezepte teilen <span class="tag">Backlog</span></h3>
@@ -523,6 +592,13 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       <h3>KI-Freitextfeld im Plan <span class="tag">Backlog</span></h3>
       <p>Eingaben wie „Ich bin Dienstag nicht da“ oder „diese Woche gerne Pasta“ werden interpretiert: Marker werden gesetzt, passende Rezepte vorgeschlagen.</p>
     </div>
+    <div class="item note">
+      <h3>Barrierefreiheit und DSGVO prüfen <span class="tag note">vor dem Livegang</span></h3>
+      <p>Vor dem Livegang muss die App auf <strong>Barrierefreiheit</strong> und <strong>DSGVO-Konformität</strong> durchgesehen werden. Sarah hat das als Idee eingebracht; es steht hier bei den Punkten vor dem Livegang, weil es beides keine Kür ist.</p>
+      <p style="margin-top:10px"><strong>Barrierefreiheit:</strong> Beim Bauen ist darauf schon geachtet worden — jedes Bedienelement hat eine Beschriftung, Zustände stehen in <code>aria-pressed</code>, der Kalender gibt je Tag einen vollständigen Vorlesetext, Farbe ist nie der einzige Träger einer Aussage (Vorschläge sind zusätzlich gestrichelt, Abwesenheit zusätzlich durchgestrichen). <em>Geprüft</em> ist es damit aber nicht. Nötig wären: Durchgang mit einer Tastatur allein, Test mit VoiceOver, Kontrastmessung in beiden Farbschemata, und ein Blick auf die Schriftgrößen — die kleinsten Beschriftungen im Kalender liegen bei 10 Pixeln, das ist unter dem Üblichen.</p>
+      <p style="margin-top:10px"><strong>DSGVO:</strong> Zu klären sind Datenschutzerklärung und Impressum, die Rechtsgrundlage für die Verarbeitung, Auskunft und Löschung auf Anfrage, die Aufbewahrungsdauer, und die Auftragsverarbeitung durch Strato und Anthropic. Letzteres ist der heikelste Punkt: Beim KI-Import und beim Vorschlagen gehen Daten an einen Dritten — bei den Gewohnheiten sind das Angaben über die Lebensführung. Wer das nutzt, muss wissen, dass es passiert. Falls es mehrere Nutzer gibt, kommt die Trennung der Datenbestände dazu (die steht bereits) und, sobald es Haushalte gibt, die Frage, wer wessen Daten sehen darf.</p>
+    </div>
+
     <div class="item note">
       <h3>Kein Selbstanlegen von Konten <span class="tag note">vor dem Livegang</span></h3>
       <p>Heute legt jeder eingegebene Name automatisch einen neuen Nutzer an. Das soll aufhören: <strong>Anmelden heißt nachschlagen, nie anlegen.</strong> Die vorhandene Tabelle <code>users</code> ist zugleich die Berechtigungsliste — wer dort nicht steht, kommt nicht rein. Gepflegt wird sie ausschließlich von Sarah direkt in der Datenbank (phpMyAdmin), nicht über die Oberfläche.</p>
@@ -541,15 +617,15 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
     
     
     <div class="item note">
-      <h3>Änderungswünsche in beliebiger Sprache <span class="tag note">Phase 3</span></h3>
+      <h3>Änderungswünsche in beliebiger Sprache <span class="tag">Backlog</span></h3>
       <p>Der Ändern-Knopf versteht heute feste Muster („2 statt 3 Eier“, „ohne Zwiebeln“, „Butter durch Öl ersetzen“). Mit hinterlegtem API-Schlüssel soll er beliebige Sätze verstehen — etwa „mach das Ganze vegan“ oder „halbiere alle Mengen außer den Gewürzen“. Die zweistufige Bedienung bleibt: erst zeigen, was verstanden wurde, dann schreiben.</p>
     </div>
     <div class="item note">
-      <h3>Zutatenfilter mit Auswahlliste <span class="tag note">3b+</span></h3>
+      <h3>Zutatenfilter mit Auswahlliste <span class="tag">Backlog</span></h3>
       <p>Statt nur über das Freitextfeld soll sich aus einer <strong>Liste der vorhandenen Zutaten</strong> auswählen lassen, welche enthalten sein müssen — mehrere gleichzeitig, alle müssen zutreffen. Die Liste speist sich aus den Zutaten der eigenen Sammlung, zusammengefasst über den vereinheitlichten Schlüssel (Zwiebeln und rote Zwiebeln erscheinen als ein Eintrag).</p>
     </div>
     <div class="item note">
-      <h3>Ähnliche Treffer statt leerer Liste <span class="tag note">3b+</span></h3>
+      <h3>Ähnliche Treffer statt leerer Liste <span class="tag">Backlog</span></h3>
       <p>Findet der Zutatenfilter nichts, soll nicht nur „keine Treffer“ dastehen. Stattdessen: <strong>fast passende Rezepte</strong> mit dem Hinweis, was fehlt („enthält 2 von 3 — es fehlt Mais“), und <strong>Rezepte, die sich passend machen ließen</strong>.</p>
       <p style="margin-top:10px"><strong>Wichtig dabei:</strong> Eine solche Änderung gilt <strong>nur für dieses eine Mal</strong> und wird nicht in die Sammlung geschrieben — außer Sarah sagt ausdrücklich, dass sie dauerhaft übernommen werden soll. Es braucht also zwei getrennte Wege: eine flüchtige Variante fürs Kochen und die vorhandene dauerhafte Änderung über den Ändern-Knopf.</p>
     </div>
@@ -574,12 +650,7 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       <h3>npm audit meldet postcss <span class="tag warn">Entscheidung offen</span></h3>
       <p>Next 15.5.25 bringt intern eine postcss-Version mit, für die Sicherheitshinweise vorliegen. Betroffen ist die Build-Kette, nicht die laufende App; lokal ist das unkritisch. Bereinigen ließe es sich nur durch den Sprung auf Next 16 — ein Hauptversionswechsel, den ich nicht ungefragt mache. Spätestens vor dem Livegang entscheiden.</p>
     </div>
-    <div class="item risk">
-      <h3>Kosten pro Import <span class="tag warn">Phase 3</span></h3>
-      <p>Jeder Import aus Bild, PDF oder Link verursacht Kosten über den hinterlegten Key. Ich baue eine Anzeige ein, die vor dem Import sagt, dass jetzt die KI benutzt wird.</p>
-    </div>
-    
-    <div class="item risk">
+    <div class="item warn">
       <h3>Einheiten ohne saubere Umrechnung <span class="tag warn">Phase 6</span></h3>
       <p>„2 Zwiebeln“ und „150 g Zwiebeln“ lassen sich nicht addieren. Die Liste fasst nur zusammen, was dieselbe Einheit hat, und zeigt den Rest als getrennte Posten. Erfahrungsgemäß der Punkt, an dem eine Einkaufsliste unübersichtlich wird.</p>
     </div>
@@ -612,7 +683,7 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
 </section>
 
 <section>
-  <h2>Befehle</h2>
+  <h2>Einrichtung</h2>
   <p class="h2sub">Auf einem neuen Rechner starten</p>
   <p>Projekt aus Git holen, in den Ordner wechseln, dann diese drei Zeilen — mehr ist nicht nötig:</p>
   <pre class="cmd">npm install
@@ -654,12 +725,13 @@ npm run preview     <span class="c"># http://localhost:8888/MealMap/</span></pre
       <li><strong>Diese beiden Regeln gelten projektübergreifend.</strong> Sie stehen in <code>~/.claude/CLAUDE.md</code> und werden in jeder Claude-Code-Sitzung geladen, unabhängig vom Projektordner.</li>
       <li><strong>Phase für Phase.</strong> Nach jeder Phase wird gestoppt und auf Freigabe gewartet, bevor es weitergeht.</li>
       <li><strong>Aufträge werden erst auf den Zeitpunkt geprüft.</strong> Vor dem Bauen schätzt Claude ein, ob die Umsetzung jetzt schon sinnvoll ist. Wenn nein, wird sie nicht gebaut, sondern hier im Dossier vermerkt – mit Begründung, wann sie fällig wird.</li>
+      <li><strong>Immer ein vollständiges Rezept zum Testen.</strong> Nach jedem Aufräumen muss mindestens ein Rezept mit Zutaten, Schritten, Kategorien und Bewertung in der Datenbank stehen — sonst sind Liste, Kochmodus, Filter und Plan nicht ansehbar. Zur Not <code>npm run db:seed</code>.</li>
       <li><strong>Keine Testdaten in Migrationen.</strong> Beispieldaten entstehen nur über <code>npm run db:seed</code>, damit die Live-Datenbank leer startet.</li>
       <li><strong>Dieses Dossier wird mitgeführt.</strong> Entscheidungen, Ideen und offene Punkte kommen hier rein, damit nichts im Chatverlauf verschwindet.</li>
     </ul>
   </div>
 </section>
 
-<footer>Dossier zu MealMap &middot; letzte Aktualisierung 13.09.2026, 09:30 Uhr &middot; Datei: docs/dossier.html</footer>
+<footer>Dossier zu MealMap &middot; letzte Aktualisierung 13.09.2026, 10:50 Uhr &middot; Datei: docs/dossier.html</footer>
 
 </div>

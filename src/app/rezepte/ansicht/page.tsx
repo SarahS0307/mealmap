@@ -3,18 +3,23 @@
 import Link from "next/link";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, ChefHat, Minus, Pencil, Plus, Printer, Snowflake, Timer, Trash2, Wand2 } from "lucide-react";
+import { ArrowLeft, CalendarPlus, ChefHat, Minus, Pencil, Plus, Printer, Snowflake, Timer, Trash2, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { StarRating } from "@/components/star-rating";
 import { RecipeAdjust } from "@/components/recipe-adjust";
+import { RecipeSchedule } from "@/components/recipe-schedule";
 import { RecipeSource } from "@/components/recipe-source";
 import { skaliereMenge, zeigeMenge } from "@/lib/portions";
 import { api, type ApiRecipe } from "@/lib/api";
 
 function Inhalt() {
   const router = useRouter();
-  const id = useSearchParams().get("id");
+  const parameter = useSearchParams();
+  const id = parameter.get("id");
+  // Nach dem Anlegen steht ?neu=1 in der Adresse – dann geht das Einplanen
+  // von selbst auf, statt dass Sarah es suchen muss.
+  const frischAngelegt = parameter.get("neu") === "1";
 
   const [rezept, setRezept] = useState<ApiRecipe | null>(null);
   const [laedt, setLaedt] = useState(true);
@@ -23,6 +28,7 @@ function Inhalt() {
   const [bewertungOffen, setBewertungOffen] = useState(false);
   const [loeschenOffen, setLoeschenOffen] = useState(false);
   const [aendernOffen, setAendernOffen] = useState(false);
+  const [einplanenOffen, setEinplanenOffen] = useState(frischAngelegt);
   // Portionen lassen sich in der Ansicht umrechnen, ohne das Rezept zu ändern.
   const [portionen, setPortionen] = useState<number | null>(null);
 
@@ -114,6 +120,14 @@ function Inhalt() {
                 Kochmodus
               </Button>
             ) : null}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEinplanenOffen((o) => !o)}
+            >
+              <CalendarPlus className="size-4" />
+              Einplanen
+            </Button>
             <Button variant="outline" size="sm" onClick={() => setAendernOffen(true)}>
               <Wand2 className="size-4" />
               Ändern
@@ -177,6 +191,16 @@ function Inhalt() {
           </div>
         ) : null}
       </header>
+
+      {einplanenOffen ? (
+        <div data-print="aus">
+          <RecipeSchedule
+            recipeId={rezept.id}
+            titel={rezept.title}
+            onSchliessen={() => setEinplanenOffen(false)}
+          />
+        </div>
+      ) : null}
 
       {rezept.images.length > 0 ? (
         <div className="flex flex-wrap gap-3">

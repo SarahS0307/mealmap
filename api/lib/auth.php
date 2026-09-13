@@ -7,6 +7,7 @@
  */
 
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/feiertage.php';
 
 function start_session(): void
 {
@@ -38,7 +39,7 @@ function current_user(): ?array
     if (!$userId) {
         return null;
     }
-    return query_one('SELECT id, name, api_key FROM users WHERE id = ?', [$userId]);
+    return query_one('SELECT id, name, api_key, state, habits FROM users WHERE id = ?', [$userId]);
 }
 
 /** Wie current_user, bricht aber mit 401 ab, wenn niemand angemeldet ist. */
@@ -75,6 +76,8 @@ function public_user(array $user): array
         'id'        => $user['id'],
         'name'      => $user['name'],
         'hasApiKey' => !empty($user['api_key']),
+        'state'     => $user['state'] ?? FEIERTAG_STANDARD_LAND,
+        'habits'    => $user['habits'] ?? null,
     ];
 }
 

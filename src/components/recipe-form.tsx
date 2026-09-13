@@ -121,7 +121,10 @@ export function RecipeForm({ recipeId }: { recipeId?: string }) {
       const { recipe } = recipeId
         ? await api.updateRecipe(recipeId, eingabe)
         : await api.createRecipe(eingabe);
-      router.push(`/rezepte/ansicht/?id=${recipe.id}`);
+      // Bei einem neuen Rezept fragt die Ansicht gleich nach dem Einplanen.
+      router.push(
+        `/rezepte/ansicht/?id=${recipe.id}${recipeId ? "" : "&neu=1"}`,
+      );
     } catch (err) {
       setFehler(err instanceof Error ? err.message : "Speichern fehlgeschlagen.");
       setSpeichert(false);

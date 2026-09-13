@@ -20,6 +20,14 @@ CREATE TABLE IF NOT EXISTS users (
   name       VARCHAR(191) NOT NULL,
   -- Schlüssel für den KI-Import. Bleibt serverseitig, erreicht nie den Browser.
   api_key    TEXT         NULL,
+  -- Bundesland als Kürzel (BW, BY, …) – bestimmt, welche Feiertage gelten.
+  -- Siehe BUNDESLAENDER in api/lib/feiertage.php.
+  state      VARCHAR(2)   NOT NULL DEFAULT 'BW',
+  -- Persönliche Gewohnheiten als Freitext, vom Nutzer selbst formuliert:
+  -- wann er auswärts isst, was er nicht mag, welcher Kochrhythmus passt.
+  -- Bewusst unstrukturiert – solche Regeln sind bei jedem anders. Wird beim
+  -- Vorschlagen an die KI weitergegeben, siehe api/lib/suggest.php.
+  habits     TEXT         NULL,
   created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
@@ -132,8 +140,11 @@ CREATE TABLE IF NOT EXISTS plan_entries (
   recipe_id    VARCHAR(36) NULL,
   free_text    TEXT        NULL,
   portion_count INT        NOT NULL DEFAULT 1,
-  -- JSON-Liste von Personen, Vorgabe ["Ich"]
+  -- JSON-Liste namentlich genannter Personen, Vorgabe ["Ich"]
   for_whom     TEXT        NULL,
+  -- Weitere Esser ohne Namen, etwa Besuch. Steht neben for_whom, nicht darin:
+  -- Namen und bloße Anzahl sind zweierlei.
+  guest_count  INT         NOT NULL DEFAULT 0,
   -- suggested | confirmed
   status       VARCHAR(16) NOT NULL DEFAULT 'confirmed',
   is_absent    TINYINT(1)  NOT NULL DEFAULT 0,
@@ -169,6 +180,32 @@ CREATE TABLE IF NOT EXISTS stock_items (
   CONSTRAINT fk_stock_user  FOREIGN KEY (user_id)       REFERENCES users (id)        ON DELETE CASCADE,
   CONSTRAINT fk_stock_recipe FOREIGN KEY (recipe_id)    REFERENCES recipes (id)      ON DELETE SET NULL,
   CONSTRAINT fk_stock_entry FOREIGN KEY (plan_entry_id) REFERENCES plan_entries (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Aus welchen Vorratsposten eine geplante Mahlzeit besteht.
+--
+-- Nötig, weil eine Mahlzeit nicht immer ein Rezept ist: "1 Portion Reis,
+-- 1 Portion Hackfleisch, 1 Portion Salsasoße aus dem Gefrierschrank" sind drei
+-- Posten in einem Eintrag. plan_entries.recipe_id bleibt daneben bestehen –
+-- beides zusammen ist erlaubt, etwa ein Rezept plus Reis als Beilage.
+CREATE TABLE IF NOT EXISTS plan_entry_stock (
+  id            VARCHAR(36)   NOT NULL,
+  user_id       VARCHAR(36)   NOT NULL,
+  plan_entry_id VARCHAR(36)   NOT NULL,
+  stock_item_id VARCHAR(36)   NOT NULL,
+  -- Wie viele Portionen dieses Postens für die Mahlzeit vorgesehen sind.
+  portions      DECIMAL(10,3) NOT NULL DEFAULT 1,
+  -- Gesetzt, sobald die Mahlzeit gegessen und der Vorrat abgebucht wurde.
+  -- Verhindert doppeltes Abbuchen, wenn der Haken hin und her geht.
+  consumed_at   DATETIME      NULL,
+  created_at    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_pes_entry_item (plan_entry_id, stock_item_id),
+  KEY idx_pes_user (user_id),
+  KEY idx_pes_item (stock_item_id),
+  CONSTRAINT fk_pes_user  FOREIGN KEY (user_id)       REFERENCES users (id)         ON DELETE CASCADE,
+  CONSTRAINT fk_pes_entry FOREIGN KEY (plan_entry_id) REFERENCES plan_entries (id)  ON DELETE CASCADE,
+  CONSTRAINT fk_pes_item  FOREIGN KEY (stock_item_id) REFERENCES stock_items (id)   ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS shopping_list_items (

@@ -54,5 +54,17 @@ function upgrades_ausfuehren(PDO $pdo): array
         $ausgefuehrt[] = 'Index auf recipes.deleted_at angelegt';
     }
 
+    if (spalte_ergaenzen($pdo, 'users', 'state', "VARCHAR(2) NOT NULL DEFAULT 'BW'")) {
+        $ausgefuehrt[] = 'users.state angelegt (Bundesland für die Feiertage)';
+    }
+
+    if (spalte_ergaenzen($pdo, 'users', 'habits', 'TEXT NULL DEFAULT NULL')) {
+        $ausgefuehrt[] = 'users.habits angelegt (persönliche Gewohnheiten als Freitext)';
+    }
+
+    if (spalte_ergaenzen($pdo, 'plan_entries', 'guest_count', 'INT NOT NULL DEFAULT 0')) {
+        $ausgefuehrt[] = 'plan_entries.guest_count angelegt (weitere Esser ohne Namen)';
+    }
+
     return $ausgefuehrt;
 }

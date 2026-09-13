@@ -2,6 +2,8 @@
 
 import {
   ApiKeyForm,
+  BundeslandForm,
+  GewohnheitenForm,
   NameForm,
   UserSwitcher,
 } from "@/components/settings-forms";
@@ -35,6 +37,30 @@ export default function EinstellungenPage() {
         </CardHeader>
         <CardContent>
           <NameForm />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Deine Gewohnheiten</CardTitle>
+          <CardDescription>
+            Was der Plan über dich wissen muss – in eigenen Worten.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <GewohnheitenForm />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Feiertage</CardTitle>
+          <CardDescription>
+            Welche Feiertage für dich gelten, hängt am Bundesland.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <BundeslandForm />
         </CardContent>
       </Card>
 
