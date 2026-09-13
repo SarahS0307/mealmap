@@ -32,6 +32,8 @@ require_once __DIR__ . '/routes/uploads.php';
 require_once __DIR__ . '/routes/import.php';
 require_once __DIR__ . '/routes/plan.php';
 require_once __DIR__ . '/routes/stock.php';
+require_once __DIR__ . '/routes/shopping.php';
+require_once __DIR__ . '/routes/stores.php';
 
 /**
  * Zerlegt Pfade mit einer Kennung, etwa /recipes/abc123 oder
@@ -43,6 +45,22 @@ $muster = $route;
 if (preg_match('#^/plan/entries/([A-Za-z0-9_-]+)(/mark|/confirm|/freeze)?$#', $route, $tp)) {
     $id = $tp[1];
     $muster = '/plan/entries/{id}' . ($tp[2] ?? '');
+}
+
+// Läden: /stores/{id}
+if (preg_match('#^/stores/([A-Za-z0-9_-]+)$#', $route, $tst)) {
+    $id = $tst[1];
+    $muster = '/stores/{id}';
+}
+
+// Einkaufsliste: /shopping-list/{id} und /shopping-list/{id}/done.
+// "generate" und "done" sind feste Pfade und dürfen nicht als Kennung
+// durchgehen – sonst landet DELETE /shopping-list/done beim Löschen eines
+// Postens mit der Kennung "done".
+if (!in_array($route, ['/shopping-list/done', '/shopping-list/generate'], true)
+    && preg_match('#^/shopping-list/([A-Za-z0-9_-]+)(/done)?$#', $route, $tl)) {
+    $id = $tl[1];
+    $muster = '/shopping-list/{id}' . ($tl[2] ?? '');
 }
 
 // Vorratsposten: /stock/{id} und /stock/{id}/take
@@ -154,6 +172,39 @@ switch ("$method $muster") {
 
     case 'PUT /plan/entries/{id}/confirm':
         route_plan_entry_confirm($id);
+
+    case 'GET /stores':
+        route_stores_index();
+
+    case 'POST /stores':
+        route_stores_create();
+
+    case 'PATCH /stores/{id}':
+        route_stores_update($id);
+
+    case 'DELETE /stores/{id}':
+        route_stores_delete($id);
+
+    case 'GET /shopping-list':
+        route_shopping_index();
+
+    case 'POST /shopping-list':
+        route_shopping_create();
+
+    case 'POST /shopping-list/generate':
+        route_shopping_generate();
+
+    case 'DELETE /shopping-list/done':
+        route_shopping_clear_done();
+
+    case 'PATCH /shopping-list/{id}':
+        route_shopping_update($id);
+
+    case 'PUT /shopping-list/{id}/done':
+        route_shopping_toggle($id);
+
+    case 'DELETE /shopping-list/{id}':
+        route_shopping_delete($id);
 
     case 'GET /stock':
         route_stock_index();

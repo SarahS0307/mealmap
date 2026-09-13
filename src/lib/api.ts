@@ -173,25 +173,126 @@ export type ApiPlanEntryStock = {
 };
 
 /** Ein Posten im Vorrat. Gezählt wird in Portionen. */
+/** Wofür ein Vorratsposten schon eingeplant ist – "SO Nudelsalat". */
+export type ApiStockReservation = {
+  day: string;
+  date: string;
+  portions: number;
+  unit: string | null;
+  what: string;
+};
+
 export type ApiStockItem = {
   id: string;
   name: string;
+  /** cooked = fertiges Essen in Portionen, ingredient = Zutat in g/Stück. */
+  kind: "cooked" | "ingredient";
+  storeCategory: StoreCategoryWert;
+  icon: string;
+  reservedFor: ApiStockReservation[];
   quantity: number;
   unit: string | null;
   location: string | null;
   recipeId: string | null;
   recipeTitle: string | null;
   bestBefore: string | null;
+  /** Tage bis zum Haltbarkeitsdatum. Negativ = abgelaufen, null = kein Datum. */
+  daysLeft: number | null;
+  /** Geschätzte Verderblichkeit: sofort verarbeiten, schnell, oder unkritisch. */
+  perishing: "sofort" | "schnell" | "normal";
+  /** abgelaufen | bald | ok */
+  freshness: "abgelaufen" | "bald" | "ok";
+  freshnessNote: string | null;
   createdAt: string;
 };
 
 export type StockInput = {
   name: string;
+  kind?: "cooked" | "ingredient";
+  storeCategory?: StoreCategoryWert;
   quantity: number;
   unit?: string | null;
   location?: string | null;
   recipeId?: string | null;
   bestBefore?: string | null;
+};
+
+/** Ein Posten auf der Einkaufsliste. */
+export type ApiShoppingItem = {
+  id: string;
+  name: string;
+  /** Sinnbild, serverseitig aus dem Namen geraten. */
+  icon: string;
+  /** Eigenes Bild – tritt an die Stelle des Sinnbilds. */
+  imageUrl: string | null;
+  quantity: number | null;
+  unit: string | null;
+  storeCategory: StoreCategoryWert;
+  /** Verderbliche Ware – lohnt einen zweiten Einkauf, wenn sie spät gebraucht wird. */
+  perishable: boolean;
+  /** Geschätzte Verderblichkeit – Hackfleisch etwa muss am Kauftag verarbeitet werden. */
+  perishing: "sofort" | "schnell" | "normal";
+  perishingNote: string | null;
+  /** Wie viele Tage hin, bis der Posten gebraucht wird. Null ohne Datum. */
+  daysAhead: number | null;
+  /** Optionaler Laden – Aldi, Lidl, Edeka. Null heißt: egal wo. */
+  storeId: string | null;
+  storeName: string | null;
+  sourceType: "recipe" | "manual";
+  status: "open" | "done";
+  neededByDate: string | null;
+  /**
+   * Alle Termine, an denen der Posten gebraucht wird – je Termin mit dem
+   * eigenen Grund, falls dort nicht eingekauft werden kann.
+   */
+  neededDates: { date: string; reason: string | null; buyBy: string }[];
+  doneAt: string | null;
+  /** Aus welchen Rezepten der Posten stammt. Leer bei Handeingaben. */
+  fromRecipes: string[];
+};
+
+export type StoreCategoryWert =
+  | "produce"
+  | "dairy"
+  | "meat"
+  | "frozen"
+  | "dry"
+  | "spices"
+  | "bakery"
+  | "drinks"
+  | "household"
+  | "other";
+
+/** Was der Vorrat schon abdeckt – steht ausgegraut neben der Liste. */
+export type ApiCoveredItem = {
+  name: string;
+  needed: number | null;
+  inStock: number;
+  unit: string | null;
+  stockName: string;
+  fully: boolean;
+  remaining: number | null;
+  recipes: string[];
+};
+
+/** Ein Laden, in dem eingekauft wird. */
+export type ApiStore = {
+  id: string;
+  name: string;
+  position?: number;
+};
+
+export type ShoppingInput = {
+  storeId?: string | null;
+  /** Fehlt das Feld, bleibt das Bild stehen; ein leerer String entfernt es. */
+  imageUrl?: string | null;
+  /** Fehlt das Feld, bleibt das Sinnbild; ein leerer String lässt wieder raten. */
+  icon?: string | null;
+  name: string;
+  quantity?: number | null;
+  unit?: string | null;
+  storeCategory?: StoreCategoryWert;
+  neededByDate?: string | null;
 };
 
 export type PlanEntryInput = {
@@ -377,8 +478,15 @@ export const api = {
       body: input,
     }),
 
+  /**
+   * Löscht einen Eintrag. Schon gekaufte Zutaten wandern dabei in den Vorrat –
+   * `toStock` sagt, was gebucht wurde.
+   */
   deletePlanEntry: (id: string) =>
-    request<{ deleted: boolean }>(`/plan/entries/${id}`, { method: "DELETE" }),
+    request<{
+      deleted: boolean;
+      toStock: { name: string; quantity: number; unit: string | null }[];
+    }>(`/plan/entries/${id}`, { method: "DELETE" }),
 
   /** Hakt gekocht oder gegessen ab – oder nimmt es zurück. */
   markPlanEntry: (id: string, what: "cooked" | "eaten", value: boolean) =>
@@ -418,6 +526,74 @@ export const api = {
    * es einfach zu tun – erst ein `trotzFeiertag` setzt es durch. Sonntage
    * weist er immer ab.
    */
+  // --- Einkaufsliste ---
+
+  shoppingList: () =>
+    request<{
+      sections: { category: StoreCategoryWert; items: ApiShoppingItem[] }[];
+      done: ApiShoppingItem[];
+      categories: StoreCategoryWert[];
+      freshLeadDays: number;
+    }>("/shopping-list"),
+
+  /**
+   * Baut die Liste aus dem Plan neu auf. Von Hand hinzugefügte und schon
+   * erledigte Posten bleiben stehen.
+   *
+   * `anyway` enthält Schlüssel, die trotz Vorrat auf die Liste sollen.
+   */
+  generateShoppingList: (from: string, days = 7, anyway: string[] = []) =>
+    request<{
+      created: number;
+      covered: ApiCoveredItem[];
+      skipped: number;
+      alreadyBought: number;
+    }>(
+      "/shopping-list/generate",
+      { method: "POST", body: { from, days, anyway } },
+    ),
+
+  createShoppingItem: (input: ShoppingInput) =>
+    request<{ item: ApiShoppingItem }>("/shopping-list", {
+      method: "POST",
+      body: input,
+    }),
+
+  updateShoppingItem: (id: string, input: ShoppingInput) =>
+    request<{ item: ApiShoppingItem }>(`/shopping-list/${id}`, {
+      method: "PATCH",
+      body: input,
+    }),
+
+  toggleShoppingItem: (id: string, done: boolean) =>
+    request<{ item: ApiShoppingItem }>(`/shopping-list/${id}/done`, {
+      method: "PUT",
+      body: { done },
+    }),
+
+  deleteShoppingItem: (id: string) =>
+    request<{ deleted: boolean }>(`/shopping-list/${id}`, { method: "DELETE" }),
+
+  /** Räumt die erledigten Posten weg – nach dem Einkauf. */
+  clearDoneShoppingItems: () =>
+    request<{ deleted: number }>("/shopping-list/done", { method: "DELETE" }),
+
+  // --- Läden ---
+
+  stores: () => request<{ stores: ApiStore[] }>("/stores"),
+
+  createStore: (name: string) =>
+    request<{ store: ApiStore }>("/stores", { method: "POST", body: { name } }),
+
+  renameStore: (id: string, name: string) =>
+    request<{ store: ApiStore }>(`/stores/${id}`, {
+      method: "PATCH",
+      body: { name },
+    }),
+
+  deleteStore: (id: string) =>
+    request<{ deleted: boolean }>(`/stores/${id}`, { method: "DELETE" }),
+
   // --- Vorrat ---
 
   stock: () =>
@@ -425,6 +601,7 @@ export const api = {
       items: ApiStockItem[];
       locations: string[];
       unit: string;
+      categories: StoreCategoryWert[];
     }>("/stock"),
 
   createStockItem: (input: StockInput) =>

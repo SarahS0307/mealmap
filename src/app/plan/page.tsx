@@ -91,6 +91,9 @@ export default function PlanPage() {
     text: string;
   } | null>(null);
   const [einfrieren, setEinfrieren] = useState<ApiPlanEntry | null>(null);
+  // Nach dem Gegessen-Haken wird gefragt, ob etwas übrig ist. Ohne die Frage
+  // verschwindet der Rest aus dem Blick und taucht im Vorrat nie auf.
+  const [resteFrage, setResteFrage] = useState<ApiPlanEntry | null>(null);
 
   // Der heutige Tag soll beim Öffnen oben stehen. Die Woche fängt montags an,
   // heute liegt also oft mittendrin – gescrollt wird deshalb, statt die Liste
@@ -137,6 +140,11 @@ export default function PlanPage() {
     const gesetzt = was === "cooked" ? Boolean(e.cookedAt) : Boolean(e.eatenAt);
     try {
       await api.markPlanEntry(e.id, was, !gesetzt);
+      // Gerade als gegessen abgehakt: nach Resten fragen. Beim Zurücknehmen
+      // nicht – da geht es zurück, nicht weiter.
+      if (was === "eaten" && !gesetzt) {
+        setResteFrage(e);
+      }
       await laden();
     } catch (err) {
       setFehler(err instanceof Error ? err.message : "Speichern fehlgeschlagen.");
@@ -329,6 +337,17 @@ export default function PlanPage() {
         </p>
       ) : null}
 
+      {resteFrage ? (
+        <RestForm
+          eintrag={resteFrage}
+          onFertig={(meldung) => {
+            setResteFrage(null);
+            if (meldung) setHinweis(meldung);
+            void laden();
+          }}
+        />
+      ) : null}
+
       {einfrieren ? (
         <FreezeForm
           eintrag={einfrieren}
@@ -413,7 +432,7 @@ export default function PlanPage() {
                       </span>
                     ) : null}
                     {tag.holiday ? (
-                      <span className="rounded-full bg-(--terracotta-light) px-2 py-0.5 text-xs font-semibold text-(--slot-snack-foreground)">
+                      <span className="rounded-full bg-(--slot-snack) px-2 py-0.5 text-xs font-semibold text-(--slot-snack-foreground)">
                         {tag.holiday}
                       </span>
                     ) : null}
@@ -496,8 +515,9 @@ export default function PlanPage() {
                             datum={tag.date}
                             slot={slot}
                             eintrag={formular.eintrag}
-                            onFertig={() => {
+                            onFertig={(meldung) => {
                               setFormular(null);
+                              if (meldung) setHinweis(meldung);
                               void laden();
                             }}
                             onAbbruch={() => setFormular(null)}
@@ -767,5 +787,105 @@ function FreezeForm({
         </Button>
       </div>
     </form>
+  );
+}
+
+/**
+ * Fragt nach dem Gegessen-Haken, ob etwas übrig geblieben ist.
+ *
+ * Voreingestellt ist <strong>0 Portionen</strong> – der Normalfall ist, dass
+ * nichts übrig bleibt, und dann soll ein Klick genügen. Was übrig ist, wandert
+ * in den Vorrat und steht beim nächsten Planen wieder zur Verfügung; halbe
+ * Portionen sind ausdrücklich erlaubt.
+ */
+function RestForm({
+  eintrag,
+  onFertig,
+}: {
+  eintrag: ApiPlanEntry;
+  onFertig: (meldung?: string) => void;
+}) {
+  const name = eintrag.recipeTitle ?? eintrag.freeText ?? "Reste";
+  const [portionen, setPortionen] = useState("0");
+  const [ort, setOrt] = useState("Kühlschrank");
+  const [laeuft, setLaeuft] = useState(false);
+  const [fehler, setFehler] = useState<string | null>(null);
+
+  const menge = Number(portionen) || 0;
+
+  async function speichern() {
+    if (menge <= 0) {
+      onFertig();
+      return;
+    }
+
+    setLaeuft(true);
+    try {
+      const { item } = await api.freezePlanEntry(eintrag.id, {
+        portions: menge,
+        name,
+        location: ort,
+      });
+      onFertig(
+        `${menge} ${menge === 1 ? "Portion" : "Portionen"} ${item.name} liegen jetzt im ${ort}.`,
+      );
+    } catch (err) {
+      setFehler(err instanceof Error ? err.message : "Speichern fehlgeschlagen.");
+      setLaeuft(false);
+    }
+  }
+
+  return (
+    <div className="space-y-4 rounded-xl border border-primary bg-card p-4">
+      <div>
+        <h2 className="font-heading text-lg font-semibold">
+          Ist von {name} etwas übrig?
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Was übrig bleibt, kommt in den Vorrat und lässt sich später wieder
+          einplanen. Halbe Portionen sind in Ordnung.
+        </p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div className="space-y-2">
+          <Label htmlFor="rest-portionen">Übrige Portionen</Label>
+          <Input
+            id="rest-portionen"
+            type="number"
+            min={0}
+            step={0.5}
+            value={portionen}
+            onChange={(e) => setPortionen(e.target.value)}
+            autoFocus
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="rest-ort">Wohin</Label>
+          <select
+            id="rest-ort"
+            value={ort}
+            onChange={(e) => setOrt(e.target.value)}
+            disabled={menge <= 0}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm disabled:opacity-50"
+          >
+            <option value="Kühlschrank">Kühlschrank</option>
+            <option value="Gefrierschrank">Gefrierschrank</option>
+            <option value="Vorratsschrank">Vorratsschrank</option>
+          </select>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 sm:pt-8">
+          <Button onClick={() => void speichern()} disabled={laeuft}>
+            {laeuft
+              ? "Speichert …"
+              : menge > 0
+                ? "In den Vorrat"
+                : "Nichts übrig"}
+          </Button>
+        </div>
+      </div>
+
+      {fehler ? <p className="text-sm text-destructive">{fehler}</p> : null}
+    </div>
   );
 }

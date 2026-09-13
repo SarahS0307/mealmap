@@ -155,8 +155,8 @@ function Inhalt() {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => setPortionen((p) => Math.max(1, p - 1))}
-            aria-label="Eine Portion weniger"
+            onClick={() => setPortionen((p) => Math.max(0.5, p - 0.5))}
+            aria-label="Eine halbe Portion weniger"
           >
             <Minus className="size-4" />
           </Button>
@@ -166,8 +166,8 @@ function Inhalt() {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => setPortionen((p) => Math.min(99, p + 1))}
-            aria-label="Eine Portion mehr"
+            onClick={() => setPortionen((p) => Math.min(99, p + 0.5))}
+            aria-label="Eine halbe Portion mehr"
           >
             <Plus className="size-4" />
           </Button>

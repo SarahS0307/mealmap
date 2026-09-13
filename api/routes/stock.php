@@ -20,10 +20,17 @@ function route_stock_index(): never
         [$user['id']],
     );
 
+    // Wofür die Posten schon verplant sind – in einer Abfrage für alle.
+    $reserviert = vorrat_reservierungen(array_column($zeilen, 'id'), $user['id']);
+    foreach ($zeilen as $i => $z) {
+        $zeilen[$i]['reserved_for'] = $reserviert[$z['id']] ?? [];
+    }
+
     send_json([
-        'items'     => array_map('vorrat_ausgeben', $zeilen),
-        'locations' => VORRAT_ORTE,
-        'unit'      => VORRAT_EINHEIT,
+        'items'      => array_map('vorrat_ausgeben', $zeilen),
+        'locations'  => VORRAT_ORTE,
+        'unit'       => VORRAT_EINHEIT,
+        'categories' => LADEN_BEREICHE,
     ]);
 }
 
@@ -52,11 +59,12 @@ function route_stock_update(string $id): never
     execute(
         'UPDATE stock_items
             SET name = ?, name_key = ?, quantity = ?, unit = ?, location = ?,
-                recipe_id = ?, best_before = ?
+                recipe_id = ?, best_before = ?, kind = ?, store_category = ?
           WHERE id = ? AND user_id = ?',
         [
             $e['name'], $e['nameKey'], $e['quantity'], $e['unit'], $e['location'],
-            $e['recipeId'], $e['bestBefore'], $id, $user['id'],
+            $e['recipeId'], $e['bestBefore'], $e['kind'], $e['storeCategory'],
+            $id, $user['id'],
         ],
     );
 
@@ -143,6 +151,9 @@ function route_plan_entry_freeze(string $id): never
         'location'   => $ort,
         'recipeId'   => $eintrag['recipe_id'],
         'bestBefore' => $haltbar ?: null,
+        // Was aus dem Plan kommt, ist fertiges Essen und zählt in Portionen.
+        'kind'          => VORRAT_ART_GEKOCHT,
+        'storeCategory' => 'other',
     ]);
 
     send_json(['item' => vorrat_laden($postenId, $user['id'])], 201);

@@ -94,9 +94,11 @@ function plan_eingaben(): array
         }
     }
 
-    $portionen = (int) ($b['portionCount'] ?? 1);
-    if ($portionen < 1 || $portionen > 99) {
-        fail('Die Portionszahl muss zwischen 1 und 99 liegen.');
+    // Halbe Portionen sind erlaubt – "eine halbe Portion Reis" ist eine
+    // sinnvolle Angabe. Feiner als ein Viertel wird es nicht.
+    $portionen = round((float) ($b['portionCount'] ?? 1) * 4) / 4;
+    if ($portionen < 0.25 || $portionen > 99) {
+        fail('Die Portionszahl muss zwischen 0,25 und 99 liegen.');
     }
 
     $fuerWen = is_array($b['forWhom'] ?? null) ? $b['forWhom'] : ['Ich'];
@@ -156,7 +158,7 @@ function plan_eintrag_ausgeben(array $z, ?array $vorrat = null): array
         'recipeId'     => $z['recipe_id'],
         'recipeTitle'  => $z['recipe_title'] ?? null,
         'freeText'     => $z['free_text'],
-        'portionCount' => (int) $z['portion_count'],
+        'portionCount' => (float) $z['portion_count'],
         'forWhom'      => json_decode((string) $z['for_whom'], true) ?: ['Ich'],
         'guestCount'   => (int) ($z['guest_count'] ?? 0),
         'fromStock'    => $vorrat !== null

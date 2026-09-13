@@ -12,26 +12,93 @@
  */
 
 require_once __DIR__ . '/ingredients.php';
+require_once __DIR__ . '/haltbarkeit.php';
+require_once __DIR__ . '/laden.php';
 
 /** Vorgabeeinheit. Alles, was gekocht und eingefroren wird, zählt so. */
 const VORRAT_EINHEIT = 'Portion';
 
-/** Wo etwas liegt. Frei erweiterbar – das hier ist nur die Auswahl. */
-const VORRAT_ORTE = ['Gefrierschrank', 'Kühlschrank', 'Vorratsschrank', 'Sonstiges'];
+/**
+ * Wo etwas liegt.
+ *
+ * Der Gefrierschrank steht bewusst am Ende: Was dort liegt, ist haltbar und
+ * eilt nicht — man schaut zuerst nach, was demnächst verdirbt.
+ */
+const VORRAT_ORTE = ['Kühlschrank', 'Vorratsschrank', 'Sonstiges', 'Gefrierschrank'];
+
+/** Fertiges Essen wird in Portionen gezählt, Zutaten in Gramm oder Stück. */
+const VORRAT_ART_GEKOCHT = 'cooked';
+const VORRAT_ART_ZUTAT = 'ingredient';
 
 function vorrat_ausgeben(array $z): array
 {
     return [
         'id'          => $z['id'],
         'name'        => $z['name'],
+        'kind'        => $z['kind'] ?? VORRAT_ART_ZUTAT,
+        'storeCategory' => $z['store_category'] ?? 'other',
+        // Fertiges Essen bekommt ein Tellersinnbild: Aus "Kichererbsen-Curry"
+        // ein Gewürzglas zu machen wäre irreführend – das ist kein Curry-
+        // pulver, sondern eine Mahlzeit.
+        'icon'        => ($z['kind'] ?? VORRAT_ART_ZUTAT) === VORRAT_ART_GEKOCHT
+            ? '🍲'
+            : laden_sinnbild_raten($z['name'], $z['store_category'] ?? 'other'),
+        // Wofür der Posten schon eingeplant ist – "SO Nudelsalat".
+        'reservedFor' => $z['reserved_for'] ?? [],
         'quantity'    => (float) $z['quantity'],
         'unit'        => $z['unit'],
         'location'    => $z['location'],
         'recipeId'    => $z['recipe_id'],
         'recipeTitle' => $z['recipe_title'] ?? null,
         'bestBefore'  => $z['best_before'],
+        'daysLeft'    => haltbarkeit_tage_bis($z['best_before']),
+        'perishing'   => $stufe = haltbarkeit_raten($z['name']),
+        'freshness'   => haltbarkeit_zustand($z['best_before'], $stufe),
+        'freshnessNote' => haltbarkeit_hinweis($stufe),
         'createdAt'   => $z['created_at'],
     ];
+}
+
+/**
+ * Wofür Vorratsposten schon eingeplant sind.
+ *
+ * Ergebnis je Posten: "SO Nudelsalat" oder "500 g MO Nudelauflauf" – Wochentag
+ * und Gericht, damit man im Gefrierschrank sieht, was noch gebraucht wird und
+ * was frei ist. Nur ungebuchte Reservierungen zählen; was schon gegessen ist,
+ * belegt nichts mehr.
+ */
+function vorrat_reservierungen(array $postenIds, string $userId): array
+{
+    if (!$postenIds) {
+        return [];
+    }
+
+    $platzhalter = implode(',', array_fill(0, count($postenIds), '?'));
+    $zeilen = query(
+        "SELECT pes.stock_item_id, pes.portions, pe.eat_date, pe.meal_slot,
+                r.title AS recipe_title, pe.free_text, s.unit
+           FROM plan_entry_stock pes
+           JOIN plan_entries pe ON pe.id = pes.plan_entry_id
+           LEFT JOIN stock_items s ON s.id = pes.stock_item_id
+           LEFT JOIN recipes r ON r.id = pe.recipe_id AND r.deleted_at IS NULL
+          WHERE pes.user_id = ? AND pes.consumed_at IS NULL
+            AND pes.stock_item_id IN ($platzhalter)
+          ORDER BY pe.eat_date ASC",
+        array_merge([$userId], $postenIds),
+    );
+
+    $kurz = ['', 'MO', 'DI', 'MI', 'DO', 'FR', 'SA', 'SO'];
+    $nach = [];
+    foreach ($zeilen as $z) {
+        $nach[$z['stock_item_id']][] = [
+            'day'      => $kurz[(int) date('N', strtotime($z['eat_date']))],
+            'date'     => $z['eat_date'],
+            'portions' => (float) $z['portions'],
+            'unit'     => $z['unit'],
+            'what'     => $z['recipe_title'] ?? $z['free_text'] ?? 'geplant',
+        ];
+    }
+    return $nach;
 }
 
 function vorrat_laden(string $id, string $userId): ?array
@@ -61,8 +128,18 @@ function vorrat_eingaben(): array
         fail('Die Menge muss größer als 0 sein.');
     }
 
-    $einheit = trim((string) ($b['unit'] ?? '')) ?: VORRAT_EINHEIT;
+    // Fertiges Essen zählt in Portionen, Zutaten in Gramm oder Stück. Die
+    // Vorgabeeinheit hängt deshalb an der Art.
+    $art = ($b['kind'] ?? '') === VORRAT_ART_GEKOCHT ? VORRAT_ART_GEKOCHT : VORRAT_ART_ZUTAT;
+    $vorgabe = $art === VORRAT_ART_GEKOCHT ? VORRAT_EINHEIT : 'g';
+
+    $einheit = trim((string) ($b['unit'] ?? '')) ?: $vorgabe;
     $ort = trim((string) ($b['location'] ?? '')) ?: null;
+
+    $bereich = trim((string) ($b['storeCategory'] ?? ''));
+    if (!in_array($bereich, LADEN_BEREICHE, true)) {
+        $bereich = laden_bereich_raten($name);
+    }
 
     $haltbar = trim((string) ($b['bestBefore'] ?? ''));
     if ($haltbar !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $haltbar)) {
@@ -74,6 +151,8 @@ function vorrat_eingaben(): array
         'nameKey'    => zutaten_schluessel($name),
         'quantity'   => $menge,
         'unit'       => mb_substr($einheit, 0, 32),
+        'kind'       => $art,
+        'storeCategory' => $bereich,
         'location'   => $ort === null ? null : mb_substr($ort, 0, 64),
         'recipeId'   => trim((string) ($b['recipeId'] ?? '')) ?: null,
         'bestBefore' => $haltbar ?: null,
@@ -108,11 +187,14 @@ function vorrat_zubuchen(string $userId, array $e): string
     $id = new_id();
     execute(
         'INSERT INTO stock_items
-            (id, user_id, name, name_key, quantity, unit, location, recipe_id, best_before)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            (id, user_id, name, name_key, quantity, unit, location, recipe_id,
+             best_before, kind, store_category)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
             $id, $userId, $e['name'], $e['nameKey'], $e['quantity'],
             $e['unit'], $e['location'], $e['recipeId'], $e['bestBefore'],
+            $e['kind'] ?? VORRAT_ART_ZUTAT,
+            $e['storeCategory'] ?? laden_bereich_raten($e['name']),
         ],
     );
     return $id;

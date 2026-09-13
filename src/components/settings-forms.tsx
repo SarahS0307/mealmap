@@ -1,13 +1,13 @@
 "use client";
 
 import { Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useSession } from "@/components/session-provider";
-import { api } from "@/lib/api";
+import { api, type ApiStore } from "@/lib/api";
 
 type Meldung = { art: "ok" | "fehler"; text: string } | null;
 
@@ -401,6 +401,162 @@ export function UserSwitcher() {
       >
         Abmelden
       </Button>
+    </div>
+  );
+}
+
+/**
+ * Läden, in denen eingekauft wird – Aldi, Lidl, Edeka.
+ *
+ * Rein optional: Ein Posten auf der Einkaufsliste ohne Laden ist völlig in
+ * Ordnung. Gelöschte Läden nehmen keine Posten mit, sie verlieren nur die
+ * Zuordnung.
+ */
+export function LaedenForm() {
+  const [laeden, setLaeden] = useState<ApiStore[]>([]);
+  const [neu, setNeu] = useState("");
+  const [bearbeitet, setBearbeitet] = useState<string | null>(null);
+  const [entwurf, setEntwurf] = useState("");
+  const [meldung, setMeldung] = useState<Meldung>(null);
+  const [laeuft, setLaeuft] = useState(false);
+
+  const laden = useCallback(async () => {
+    try {
+      const { stores } = await api.stores();
+      setLaeden(stores);
+    } catch {
+      setLaeden([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    void laden();
+  }, [laden]);
+
+  async function hinzufuegen(e: React.FormEvent) {
+    e.preventDefault();
+    if (neu.trim() === "") return;
+    setLaeuft(true);
+    setMeldung(null);
+    try {
+      await api.createStore(neu.trim());
+      setNeu("");
+      await laden();
+    } catch (err) {
+      setMeldung({
+        art: "fehler",
+        text: err instanceof Error ? err.message : "Fehlgeschlagen.",
+      });
+    } finally {
+      setLaeuft(false);
+    }
+  }
+
+  async function umbenennen(id: string) {
+    if (entwurf.trim() === "") return;
+    try {
+      await api.renameStore(id, entwurf.trim());
+      setBearbeitet(null);
+      await laden();
+    } catch (err) {
+      setMeldung({
+        art: "fehler",
+        text: err instanceof Error ? err.message : "Fehlgeschlagen.",
+      });
+    }
+  }
+
+  async function entfernen(id: string) {
+    try {
+      await api.deleteStore(id);
+      await laden();
+    } catch (err) {
+      setMeldung({
+        art: "fehler",
+        text: err instanceof Error ? err.message : "Fehlgeschlagen.",
+      });
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      {laeden.length > 0 ? (
+        <ul className="divide-y divide-border rounded-lg border border-border">
+          {laeden.map((l) => (
+            <li key={l.id} className="flex flex-wrap items-center gap-2 p-2">
+              {bearbeitet === l.id ? (
+                <>
+                  <Input
+                    value={entwurf}
+                    onChange={(e) => setEntwurf(e.target.value)}
+                    className="flex-1"
+                    aria-label={`${l.name} umbenennen`}
+                    autoFocus
+                  />
+                  <Button size="sm" onClick={() => void umbenennen(l.id)}>
+                    Speichern
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setBearbeitet(null)}
+                  >
+                    Abbrechen
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <span className="flex-1">{l.name}</span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setBearbeitet(l.id);
+                      setEntwurf(l.name);
+                    }}
+                  >
+                    Umbenennen
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-destructive"
+                    onClick={() => void entfernen(l.id)}
+                  >
+                    Entfernen
+                  </Button>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          Noch keine Läden angelegt.
+        </p>
+      )}
+
+      <form onSubmit={hinzufuegen} className="flex flex-wrap items-end gap-2">
+        <div className="flex-1 space-y-2">
+          <Label htmlFor="laden-neu">Laden hinzufügen</Label>
+          <Input
+            id="laden-neu"
+            value={neu}
+            onChange={(e) => setNeu(e.target.value)}
+            placeholder="Aldi"
+          />
+        </div>
+        <Button type="submit" disabled={laeuft || neu.trim() === ""}>
+          Hinzufügen
+        </Button>
+      </form>
+
+      <MeldungsZeile meldung={meldung} />
+      <p className="text-sm text-muted-foreground">
+        Auf der Einkaufsliste lässt sich jedem Posten ein Laden zuordnen – das
+        ist freiwillig. Entfernst du einen Laden, bleiben die Posten stehen und
+        verlieren nur die Zuordnung.
+      </p>
     </div>
   );
 }

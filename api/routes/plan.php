@@ -13,6 +13,7 @@
 
 require_once __DIR__ . '/../lib/plan.php';
 require_once __DIR__ . '/../lib/suggest.php';
+require_once __DIR__ . '/../lib/shopping.php';
 
 /**
  * Gibt einen Zeitraum zurück, Tag für Tag – auch Tage ohne Einträge, damit
@@ -170,8 +171,13 @@ function route_plan_entry_delete(string $id): never
         fail('Diesen Eintrag gibt es nicht.', 404);
     }
 
+    // Erst den Anteil aus der Einkaufsliste herausrechnen, dann löschen: Die
+    // Fremdschlüssel-Kaskade räumt die Beiträge sonst weg, bevor man weiß, wie
+    // viel abzuziehen war.
+    $inDenVorrat = einkauf_beitrag_entfernen($id, $user['id']);
+
     execute('DELETE FROM plan_entries WHERE id = ?', [$id]);
-    send_json(['deleted' => true]);
+    send_json(['deleted' => true, 'toStock' => $inDenVorrat]);
 }
 
 /**

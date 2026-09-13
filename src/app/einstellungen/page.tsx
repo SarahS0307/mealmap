@@ -4,6 +4,7 @@ import {
   ApiKeyForm,
   BundeslandForm,
   GewohnheitenForm,
+  LaedenForm,
   NameForm,
   UserSwitcher,
 } from "@/components/settings-forms";
@@ -49,6 +50,18 @@ export default function EinstellungenPage() {
         </CardHeader>
         <CardContent>
           <GewohnheitenForm />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Läden</CardTitle>
+          <CardDescription>
+            Wo du einkaufst – für die Einkaufsliste, freiwillig.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <LaedenForm />
         </CardContent>
       </Card>
 

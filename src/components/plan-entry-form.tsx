@@ -35,7 +35,7 @@ export function PlanEntryForm({
   datum: string;
   slot: MealSlotWert;
   eintrag?: ApiPlanEntry;
-  onFertig: () => void;
+  onFertig: (meldung?: string) => void;
   onAbbruch: () => void;
 }) {
   const [rezepte, setRezepte] = useState<ApiRecipeSummary[]>([]);
@@ -45,6 +45,10 @@ export function PlanEntryForm({
   const [kochtag, setKochtag] = useState(eintrag?.cookDate ?? "");
   const [fuerWen, setFuerWen] = useState((eintrag?.forWhom ?? ["Ich"]).join(", "));
   const [gaeste, setGaeste] = useState(String(eintrag?.guestCount ?? 0));
+  // Der Essenstermin lässt sich beim Ändern verschieben. Die Einkaufsliste
+  // bleibt davon unberührt – gekauft ist gekauft, egal an welchem Tag gegessen
+  // wird.
+  const [essenstag, setEssenstag] = useState(eintrag?.eatDate ?? datum);
   // Woraus die Mahlzeit besteht, wenn sie aus dem Vorrat kommt.
   const [vorrat, setVorrat] = useState<ApiStockItem[]>([]);
   const [ausVorrat, setAusVorrat] = useState<Record<string, number>>(() =>
@@ -88,7 +92,7 @@ export function PlanEntryForm({
     setFehler(null);
 
     const eingabe: PlanEntryInput = {
-      eatDate: datum,
+      eatDate: essenstag,
       cookDate: kochtag || null,
       mealSlot: slot,
       recipeId: rezeptId || null,
@@ -191,7 +195,7 @@ export function PlanEntryForm({
                           variant="outline"
                           disabled={gewaehlt <= 0}
                           aria-label={`Weniger ${p.name}`}
-                          onClick={() => setzeVorrat(p.id, gewaehlt - 1)}
+                          onClick={() => setzeVorrat(p.id, gewaehlt - 0.5)}
                         >
                           <Minus className="size-4" />
                         </Button>
@@ -203,7 +207,7 @@ export function PlanEntryForm({
                           size="sm"
                           variant="outline"
                           aria-label={`Mehr ${p.name}`}
-                          onClick={() => setzeVorrat(p.id, gewaehlt + 1)}
+                          onClick={() => setzeVorrat(p.id, gewaehlt + 0.5)}
                         >
                           <Plus className="size-4" />
                         </Button>
@@ -226,8 +230,9 @@ export function PlanEntryForm({
               <Input
                 id="plan-portionen"
                 type="number"
-                min={1}
+                min={0.5}
                 max={99}
+                step={0.5}
                 value={portionen}
                 onChange={(e) => setPortionen(e.target.value)}
               />
@@ -237,7 +242,7 @@ export function PlanEntryForm({
               <Input
                 id="plan-kochtag"
                 type="date"
-                max={datum}
+                max={essenstag}
                 value={kochtag}
                 onChange={(e) => setKochtag(e.target.value)}
               />
@@ -275,6 +280,28 @@ export function PlanEntryForm({
             </div>
           </div>
 
+          {eintrag ? (
+            <div className="space-y-2">
+              <Label htmlFor="plan-essenstag">Gegessen wird am</Label>
+              <Input
+                id="plan-essenstag"
+                type="date"
+                value={essenstag}
+                onChange={(e) => {
+                  setEssenstag(e.target.value);
+                  // Kochtermin mitziehen, wenn er sonst danach läge.
+                  if (kochtag !== "" && kochtag > e.target.value) {
+                    setKochtag(e.target.value);
+                  }
+                }}
+              />
+              <p className="text-sm text-muted-foreground">
+                Verschiebt den Eintrag auf einen anderen Tag. Was du dafür
+                schon eingekauft hast, bleibt davon unberührt.
+              </p>
+            </div>
+          ) : null}
+
           <p className="text-sm text-muted-foreground">
             Der Kochtermin darf vor dem Essenstermin liegen, zum Beispiel
             sonntags kochen und unter der Woche essen. Leer lassen, wenn nicht
@@ -298,8 +325,14 @@ export function PlanEntryForm({
             variant="ghost"
             className={cn("ml-auto text-destructive")}
             onClick={async () => {
-              await api.deletePlanEntry(eintrag.id);
-              onFertig();
+              const { toStock } = await api.deletePlanEntry(eintrag.id);
+              onFertig(
+                toStock.length > 0
+                  ? `Gestrichen. Schon Gekauftes ist in den Vorrat gewandert: ${toStock
+                      .map((p) => `${p.quantity} ${p.unit ?? ""} ${p.name}`.trim())
+                      .join(", ")}.`
+                  : undefined,
+              );
             }}
           >
             Entfernen

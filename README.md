@@ -3,6 +3,9 @@
 Rezepte, Meal-Prep-Plan und Einkaufsliste in einer Webapp.
 
 Konzept, Arbeitsplan und alle Entscheidungen stehen im Dossier: [docs/dossier.html](docs/dossier.html).
+Der Arbeitsplan hat zwölf Phasen; 0 bis 7 sind fertig. Es folgen Nachprüfen
+und Aufräumen, die Entscheidung über die Ideenliste, die Generalprobe mit
+echtem API-Schlüssel und die Vorbereitung der Livestellung.
 Die gestalterische Grundlage liegt daneben im [Moodboard](docs/moodboard.html).
 
 ## Wie das Projekt aufgebaut ist
@@ -37,6 +40,13 @@ Der Ordner `uploads/` muss beschreibbar sein – dort landen Bilder und PDFs.
 
 `api/config.php` wird nicht eingecheckt, weil die Datei Zugangsdaten enthält –
 daneben liegt `config.example.php` als Vorlage.
+
+`npm run db:seed` füllt **jedes Modul** mit Beispielen, nicht nur die Rezepte:
+vier Rezepte, drei Läden, vier Vorratsposten (darunter Hackfleisch und
+Kopfsalat, damit die Verderblichkeits-Kennzeichnung sichtbar wird), zwei
+bestätigte Plan-Einträge und zwei Posten auf der Einkaufsliste. Das Skript ist
+mehrfach ausführbar – jeder Schritt prüft erst, ob es das schon gibt. Es ist
+bewusst von den Migrationen getrennt, damit die Live-Instanz leer startet.
 
 **Wichtig:** Lokal liegt die App im Unterordner `/MealMap`, live an der Wurzel
 der Subdomain. Deshalb setzen die Skripte `basePath` unterschiedlich – `preview`
@@ -125,6 +135,9 @@ src/lib/dates.ts  Datumsrechnung ohne UTC-Fallstricke
 api/lib/suggest.php  Vorschlagsmotor für den Plan
 api/lib/feiertage.php  Feiertage je Bundesland, einzige Quelle
 api/lib/stock.php  Vorrat: zubuchen, abbuchen, an Mahlzeiten hängen
+api/lib/shopping.php  Einkaufsliste: sammeln, zusammenfassen, einordnen
+api/lib/haltbarkeit.php  wie schnell etwas verdirbt – einzige Quelle
+api/lib/laden.php  Supermarktbereiche und Sinnbilder – von Liste und Vorrat genutzt
 uploads/          hochgeladene Bilder und PDFs – niemals mitlöschen
 dist/             erzeugtes Bündel: gebaute Oberfläche + api/, so wie es live liegt
 assets/           Quelldateien für Logo und Icons
@@ -221,6 +234,104 @@ Die Trennlinie:
 Tatsachen gelten für alle, Gewohnheiten für genau eine Person. Liegt kein
 Gewohnheitstext vor, verhält sich die App neutral, statt etwas anzunehmen.
 
+## Die Einkaufsliste
+
+„Aus dem Plan übernehmen" fragt zuerst nach dem **Zeitraum** und übernimmt erst
+nach Bestätigung. Voreingestellt ist **ab heute eine Woche**; die Tageszahl wird
+mit angezeigt, ein Ende vor dem Anfang wird abgewiesen, mehr als 60 Tage nimmt
+die API nicht.
+
+Gesammelt werden die Zutaten der **bestätigten** Plan-Einträge in diesem
+Zeitraum – Vorschläge zählen nicht mit – skaliert auf die geplanten Portionen.
+Code: [api/lib/shopping.php](api/lib/shopping.php).
+
+Wie ein Posten entsteht und wieder verschwindet:
+
+| | |
+| --- | --- |
+| Gleiche Zutat aus zwei Rezepten | wird zu **einem** Posten addiert, über den vereinheitlichten Schlüssel |
+| Verschiedene Einheiten | bleiben getrennt – 200 g und 3 Stück lassen sich nicht addieren |
+| Rezept fliegt aus dem Plan | nur **sein Anteil** wird abgezogen, nicht der ganze Posten |
+| Posten von Hand eingetragen | bleibt beim Neuaufbau stehen |
+| Posten schon abgehakt | bleibt stehen und kommt nicht erneut auf die Liste |
+
+Möglich macht das [shopping_list_contributions](api/schema.sql): dort steht, welcher
+Plan-Eintrag wie viel zu welchem Posten beiträgt.
+
+**Abgleich mit dem Vorrat.** Was laut Vorrat schon zuhause ist, fehlt auf der
+Liste – steht aber ausgegraut unter „Hast du schon", mit einem Knopf, der es
+doch dazuholt. Reicht der Vorrat nur teilweise, kommt die Differenz auf die
+Liste. Verglichen wird **nur bei gleicher Einheit**: „500 g Mehl" deckt „200 g
+Mehl", aber „4 Portionen Quinoasalat" sagt nichts über „250 g Quinoa" aus.
+
+**Supermarktbereiche und Sinnbilder** werden aus dem Namen geraten
+(`laden_bereich_raten()`, `laden_sinnbild_raten()`). Geprüft wird dabei gegen den
+**rohen Namen**, nicht gegen den Zutatenschlüssel – der kürzt zu stark, aus
+„Basmatireis" wird dort „basmatirei". Die Reihenfolge der Stichwörter
+entscheidet bei Mehrdeutigkeit: „kokos" steht vor „milch", „kichererbse" vor
+„erbse".
+
+**Läden sind optional.** Jedem Posten lässt sich ein Laden zuordnen (Aldi,
+Lidl, Edeka …); gepflegt werden sie in den Einstellungen. Ein entfernter Laden
+nimmt keine Posten mit – `ON DELETE SET NULL` löst nur die Zuordnung.
+
+**Kachelweise.** Die offenen Posten stehen als Raster nebeneinander – zwei
+Spalten am Telefon, drei ab Tablet, vier am Rechner. Ein Klick hakt ab, ein
+**Doppelklick öffnet die Bearbeitung** (oder der Stift oben links): Name,
+Menge, Einheit, Bereich, Laden, Sinnbild und ein eigenes Bild, das an die
+Stelle des Sinnbilds tritt. Erledigtes wird zu kompakten Chips am Listenende.
+
+**Nur das Bedarfsdatum.** An jedem Posten steht das Datum, an dem er gebraucht
+wird – ohne Zusätze wie „kaufen bis". Fällt es auf einen Tag ohne
+Einkaufsmöglichkeit, steht der Grund dahinter: „20. September (Sonntag)".
+Der Grund gilt **je Termin**, nicht je Posten. `einkauf_kauftag()` rechnet
+dafür so weit zurück, bis ein offener Tag erreicht ist; über Weihnachten landet
+man beim 24.
+
+**Verderbliches wird je Termin einzeln gekauft**, Haltbares zusammengefasst:
+
+| | |
+| --- | --- |
+| Hackfleisch für Montag und Samstag | **zwei** Posten, je ein Kauftag |
+| Mehl für Montag und Samstag | **ein** Posten, beide Termine daran |
+
+**Zu früh ist ausgegraut, nicht gesperrt** – frische Ware ab zwei Tagen
+Vorlauf, haltbare ab sechs. Die Posten bleiben voll bedienbar.
+
+**Zweiter Einkauf.** Frische Ware (Obst & Gemüse, Milchprodukte, Fleisch &
+Fisch, Backwaren), die erst in vier Tagen oder später gebraucht wird, wird
+eigens genannt. Der Hinweis nimmt nichts von der Liste, er sagt nur, was warten
+kann.
+
+## Wie schnell etwas verdirbt
+
+Eine Regel an einer Stelle: [api/lib/haltbarkeit.php](api/lib/haltbarkeit.php).
+Drei Stufen, geraten aus dem Namen:
+
+| Stufe | Beispiele | Hinweis |
+| --- | --- | --- |
+| `sofort` | Hackfleisch, Geflügel, frischer Fisch | am Kauftag verarbeiten oder einfrieren |
+| `schnell` | Salat, Beeren, Kräuter, Milch, Brot | hält nur wenige Tage |
+| `normal` | Mehl, Reis, Konserven, Tiefgekühltes | unkritisch |
+
+**Hackfleisch gehört ausdrücklich in die erste Stufe** – es muss immer am
+Kauftag verarbeitet oder eingefroren werden.
+
+Geprüft wird gegen den rohen Namen, und Ausnahmen kommen zuerst: „Kokosmilch"
+und „Kondensmilch" sind keine Frischmilch, Tiefgekühltes verdirbt nicht mehr.
+
+Der Vorrat zeigt daraus einen Zustand – `abgelaufen`, `bald`, `ok`. Mit
+Haltbarkeitsdatum entscheidet die verbleibende Tageszahl (≤ 3 Tage = bald),
+ohne Datum die geschätzte Stufe. Die Einkaufsliste zeigt dieselbe
+Kennzeichnung an der Kachel.
+
+## Halbe Portionen
+
+Portionen sind überall Bruchzahlen, bis hinunter zum Viertel – im Plan, im
+Kochmodus, im Vorrat und bei den Resten. `plan_entries.portion_count` ist
+deshalb `DECIMAL(10,2)` und nicht `INT`; die Migration in
+[api/upgrades.php](api/upgrades.php) stellt bestehende Datenbanken um.
+
 ## Der Vorrat
 
 Eine eigene Hauptseite unter `/vorrat`, neben Rezepte, Plan und Einkaufsliste.
@@ -228,11 +339,27 @@ Gezählt wird in **Portionen** – so wird es angegeben: „vier Portionen Reis
 eingefroren". Andere Einheiten sind erlaubt (für den Vorratsschrank später),
 die Portion ist die Vorgabe.
 
+**Zwei Arten von Posten:** *fertiges Essen* zählt in Portionen, *Zutaten* in
+Gramm, Stück oder Packungen. Die Einheit und die Schrittweite der Plus/Minus-
+Knöpfe folgen der Art – halbe Portionen beim Essen, 50-Gramm-Schritte bei
+Zutaten.
+
+**Kachelweise, nach Ort und Kategorie** – dieselben Bereiche wie auf der
+Einkaufsliste. Der **Gefrierschrank steht am Ende**, weil dort nichts eilt.
+Innerhalb eines Orts stehen die Kategorien mit Verderblichem oben, innerhalb
+einer Kategorie zuerst das Abgelaufene, dann das bald Fällige.
+
+**Wofür ein Posten vorgesehen ist, steht daran:** „SO Nudelsalat" heißt für
+Sonntag im Nudelsalat eingeplant, bei Zutaten mit Menge davor („500 g MO
+Nudelauflauf"). Kommt aus `plan_entry_stock`; schon Abgebuchtes belegt nichts.
+
 Wie der Bestand sich ändert:
 
 | Auslöser | Wirkung |
 | --- | --- |
 | „einfrieren" an einem gekochten Plan-Eintrag | Portionen kommen dazu |
+| Reste-Frage nach dem Gegessen-Haken | Übriges kommt dazu, mit Ort |
+| Plan-Eintrag gestrichen, für den schon gekauft wurde | gekaufte Zutaten kommen dazu |
 | Mahlzeit aus dem Vorrat als **gegessen** abhaken | Portionen gehen ab |
 | denselben Haken zurücknehmen | Portionen kommen zurück |
 | +/− und „anlegen" auf der Vorratsseite | von Hand, jederzeit |

@@ -139,7 +139,9 @@ CREATE TABLE IF NOT EXISTS plan_entries (
   meal_slot    VARCHAR(16) NOT NULL,
   recipe_id    VARCHAR(36) NULL,
   free_text    TEXT        NULL,
-  portion_count INT        NOT NULL DEFAULT 1,
+  -- Halbe Portionen sind erlaubt: "eine halbe Portion Reis" ist eine
+  -- sinnvolle Angabe, deshalb DECIMAL statt INT.
+  portion_count DECIMAL(10,2) NOT NULL DEFAULT 1,
   -- JSON-Liste namentlich genannter Personen, Vorgabe ["Ich"]
   for_whom     TEXT        NULL,
   -- Weitere Esser ohne Namen, etwa Besuch. Steht neben for_whom, nicht darin:
@@ -172,6 +174,11 @@ CREATE TABLE IF NOT EXISTS stock_items (
   recipe_id     VARCHAR(36)  NULL,
   plan_entry_id VARCHAR(36)  NULL,
   best_before   DATE         NULL,
+  -- cooked = fertiges Essen, in Portionen gezählt
+  -- ingredient = reine Zutat, in Gramm, Stück, Packungen
+  kind          VARCHAR(16)  NOT NULL DEFAULT 'ingredient',
+  -- Bereich wie auf der Einkaufsliste: produce, dairy, spices, …
+  store_category VARCHAR(32) NOT NULL DEFAULT 'other',
   created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
@@ -208,6 +215,22 @@ CREATE TABLE IF NOT EXISTS plan_entry_stock (
   CONSTRAINT fk_pes_item  FOREIGN KEY (stock_item_id) REFERENCES stock_items (id)   ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Läden, in denen eingekauft wird – Aldi, Lidl, Edeka und so weiter.
+--
+-- Rein optional: Ein Posten ohne Laden ist völlig in Ordnung. Gepflegt werden
+-- sie vom Nutzer selbst in den Einstellungen.
+CREATE TABLE IF NOT EXISTS stores (
+  id       VARCHAR(36)  NOT NULL,
+  user_id  VARCHAR(36)  NOT NULL,
+  name     VARCHAR(191) NOT NULL,
+  -- Reihenfolge in der Auswahl, vom Nutzer bestimmt.
+  position INT          NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_stores_user_name (user_id, name),
+  KEY idx_stores_user (user_id),
+  CONSTRAINT fk_stores_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS shopping_list_items (
   id             VARCHAR(36)  NOT NULL,
   user_id        VARCHAR(36)  NOT NULL,
@@ -221,6 +244,12 @@ CREATE TABLE IF NOT EXISTS shopping_list_items (
   source_type    VARCHAR(16)  NOT NULL DEFAULT 'manual',
   -- open | done
   status         VARCHAR(16)  NOT NULL DEFAULT 'open',
+  -- Optionaler Laden. NULL heißt: egal wo.
+  store_id       VARCHAR(36)  NULL,
+  -- Eigenes Bild statt des geratenen Sinnbilds. NULL heißt: Sinnbild benutzen.
+  image_url      TEXT         NULL,
+  -- Selbst gewähltes Sinnbild. NULL heißt: aus dem Namen raten.
+  icon           VARCHAR(16)  NULL,
   needed_by_date DATE         NULL,
   done_at        DATETIME     NULL,
   created_at     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -228,7 +257,9 @@ CREATE TABLE IF NOT EXISTS shopping_list_items (
   PRIMARY KEY (id),
   KEY idx_shopping_user_status (user_id, status),
   KEY idx_shopping_key (name_key),
-  CONSTRAINT fk_shopping_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+  KEY idx_shopping_store (store_id),
+  CONSTRAINT fk_shopping_user  FOREIGN KEY (user_id)  REFERENCES users (id)  ON DELETE CASCADE,
+  CONSTRAINT fk_shopping_store FOREIGN KEY (store_id) REFERENCES stores (id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Welcher Plan-Eintrag wie viel zu einem zusammengefassten Posten beiträgt.

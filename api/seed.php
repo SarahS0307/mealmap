@@ -87,4 +87,120 @@ if (!$vorhanden) {
 }
 
 $anzahl = query_one('SELECT COUNT(*) AS n FROM recipes WHERE user_id = ?', [$userId])['n'];
-echo "Beispieldaten für \"Sarah\" angelegt. Rezepte: $anzahl\n";
+// ---------------------------------------------------------------------------
+// Läden für die Einkaufsliste. Optional, aber ohne Beispiel sieht man die
+// Zuordnung auf der Liste gar nicht.
+// ---------------------------------------------------------------------------
+$laeden = 0;
+foreach (['Aldi', 'Edeka', 'Wochenmarkt'] as $i => $name) {
+    $da = query_one('SELECT id FROM stores WHERE user_id = ? AND name = ?', [$userId, $name]);
+    if ($da) {
+        continue;
+    }
+    execute(
+        'INSERT INTO stores (id, user_id, name, position) VALUES (?, ?, ?, ?)',
+        [id(), $userId, $name, $i],
+    );
+    $laeden++;
+}
+
+// ---------------------------------------------------------------------------
+// Vorrat. Zeigt die drei Verderblichkeitsstufen und ein abgelaufenes Datum,
+// damit die Kennzeichnung auf der Vorratsseite überhaupt zu sehen ist.
+// ---------------------------------------------------------------------------
+$vorrat = 0;
+$vorratsbeispiele = [
+    ['Hackfleisch', 1, 'Packung', 'Kühlschrank', '+1 day'],
+    ['Kopfsalat', 1, 'Stück', 'Kühlschrank', '+2 days'],
+    ['Basmatireis', 500, 'g', 'Vorratsschrank', null],
+    ['Gemüsebrühe', 3, 'Portion', 'Gefrierschrank', '+120 days'],
+];
+foreach ($vorratsbeispiele as [$name, $menge, $einheit, $ort, $haltbar]) {
+    $da = query_one(
+        'SELECT id FROM stock_items WHERE user_id = ? AND name = ?',
+        [$userId, $name],
+    );
+    if ($da) {
+        continue;
+    }
+    execute(
+        'INSERT INTO stock_items
+            (id, user_id, name, name_key, quantity, unit, location, best_before)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+            id(), $userId, $name, zutaten_schluessel($name), $menge, $einheit, $ort,
+            $haltbar === null ? null : date('Y-m-d', strtotime($haltbar)),
+        ],
+    );
+    $vorrat++;
+}
+
+// ---------------------------------------------------------------------------
+// Plan: ein bestätigter Eintrag heute und einer übermorgen, damit sich die
+// Einkaufsliste daraus erzeugen lässt und der Kalender nicht leer ist.
+// ---------------------------------------------------------------------------
+$planEintraege = 0;
+if (isset($recipeId) || ($ersteId = query_one('SELECT id FROM recipes WHERE user_id = ? ORDER BY title LIMIT 1', [$userId])['id'] ?? null)) {
+    $rezeptFuerPlan = $recipeId ?? $ersteId;
+
+    foreach ([['today', 'dinner', 2], ['+2 days', 'lunch', 4]] as [$wann, $slot, $portionen]) {
+        $datum = date('Y-m-d', strtotime($wann));
+        $da = query_one(
+            'SELECT id FROM plan_entries WHERE user_id = ? AND eat_date = ? AND meal_slot = ?',
+            [$userId, $datum, $slot],
+        );
+        if ($da) {
+            continue;
+        }
+
+        $tag = query_one('SELECT id FROM plan_days WHERE user_id = ? AND date = ?', [$userId, $datum]);
+        if (!$tag) {
+            $tagId = id();
+            execute('INSERT INTO plan_days (id, user_id, date) VALUES (?, ?, ?)', [$tagId, $userId, $datum]);
+        } else {
+            $tagId = $tag['id'];
+        }
+
+        execute(
+            'INSERT INTO plan_entries
+                (id, user_id, plan_day_id, cook_date, eat_date, meal_slot, recipe_id,
+                 portion_count, for_whom, guest_count, status, is_absent)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [
+                id(), $userId, $tagId, $datum, $datum, $slot, $rezeptFuerPlan,
+                $portionen, json_encode(['Ich'], JSON_UNESCAPED_UNICODE), 0, 'confirmed', 0,
+            ],
+        );
+        $planEintraege++;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Einkaufsliste: zwei Posten von Hand, damit die Seite nicht leer startet.
+// Der Rest entsteht über "Aus dem Plan übernehmen".
+// ---------------------------------------------------------------------------
+$listenposten = 0;
+$ersterLaden = query_one('SELECT id FROM stores WHERE user_id = ? ORDER BY position LIMIT 1', [$userId]);
+foreach ([['Spülmittel', 1, 'Flasche', 'household'], ['Kaffeebohnen', 500, 'g', 'drinks']] as [$name, $menge, $einheit, $bereich]) {
+    $da = query_one(
+        "SELECT id FROM shopping_list_items WHERE user_id = ? AND name = ?",
+        [$userId, $name],
+    );
+    if ($da) {
+        continue;
+    }
+    execute(
+        'INSERT INTO shopping_list_items
+            (id, user_id, name, name_key, quantity, unit, store_category,
+             source_type, status, store_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+            id(), $userId, $name, zutaten_schluessel($name), $menge, $einheit,
+            $bereich, 'manual', 'open', $ersterLaden['id'] ?? null,
+        ],
+    );
+    $listenposten++;
+}
+
+echo "Beispieldaten für \"Sarah\" angelegt.\n";
+echo "  Rezepte: $anzahl · Läden: $laeden · Vorrat: $vorrat · Plan: $planEintraege · Einkaufsliste: $listenposten\n";
