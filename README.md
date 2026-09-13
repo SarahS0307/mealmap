@@ -3,9 +3,9 @@
 Rezepte, Meal-Prep-Plan und Einkaufsliste in einer Webapp.
 
 Konzept, Arbeitsplan und alle Entscheidungen stehen im Dossier: [docs/dossier.html](docs/dossier.html).
-Der Arbeitsplan hat zwölf Phasen; 0 bis 7 sind fertig. Es folgen Nachprüfen
-und Aufräumen, die Entscheidung über die Ideenliste, die Generalprobe mit
-echtem API-Schlüssel und die Vorbereitung der Livestellung.
+Der Arbeitsplan hat dreizehn Phasen; 0 bis 8 sind fertig. Es folgen die
+Entscheidung über die Ideenliste, die Generalprobe mit echtem API-Schlüssel,
+ein letzter Durchgang und die Vorbereitung der Livestellung.
 Die gestalterische Grundlage liegt daneben im [Moodboard](docs/moodboard.html).
 
 ## Wie das Projekt aufgebaut ist

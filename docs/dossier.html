@@ -203,13 +203,13 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
 <div class="wrap">
 
 <header>
-  <p class="eyebrow">Projektdossier &middot; Stand 16. September 2026, 15:10 Uhr</p>
+  <p class="eyebrow">Projektdossier &middot; Stand 16. September 2026, 18:40 Uhr</p>
   <h1>MealMap</h1>
   <p class="lede">Rezepte, Meal-Prep-Plan und Einkaufsliste in einer Webapp. Dieses Dossier hält fest, was entschieden ist, was gebaut wird und was noch offen liegt.</p>
   <div class="meta">
     <span><b>Ordner</b> ~/Sites/MealMap</span>
     <span><b>Quelle</b> mealmap-konzept.md</span>
-    <span><b>Phase</b> 0 bis 7 erledigt</span>
+    <span><b>Phase</b> 0 bis 8 erledigt</span>
     <span><b>Lokal</b> localhost:8888/MealMap</span>
   </div>
 </header>
@@ -230,7 +230,7 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
   <div class="stack">
     <div class="item note">
       <h3>Wo das Projekt steht</h3>
-      <p><strong>Phase 0 bis 5 sind fertig und geprüft.</strong> Grundgerüst, Design nach Moodboard, Datenbankschema mit zwölf Tabellen, PHP-API mit 35 Endpunkten, Nutzerverwaltung mit Namensabfrage als Zugangsschranke, vollständiges Rezeptmodul mit Kategorien, Bewertung, Kochmodus, Filtern, Druckansicht, Uploads und KI-Import, dazu der Meal-Prep-Plan mit getrenntem Koch- und Essenstermin in zwei Ansichten — Monatskalender für den Überblick, Tagesansicht zum Bearbeiten. Dazu aus Phase 5 der wochenweise Vorschlagsmotor mit „Reste zuerst“, das Einplanen direkt vom Rezept aus, der Vorrat als vierte Hauptseite und die Mengenskalierung beim Kochen; aus Phase 6 und 7 die vollständige Einkaufsliste mit Zusammenfassen, anteiligem Abzug, Vorrats-Abgleich, Supermarktbereichen, Sinnbildern und dem Hinweis auf einen zweiten Einkauf. <strong>Als Nächstes: Phase 8 — alles nachprüfen und aufräumen.</strong></p>
+      <p><strong>Phase 0 bis 8 sind fertig und geprüft.</strong> Grundgerüst, Design nach Moodboard, Datenbankschema mit vierzehn Tabellen, PHP-API mit 54 Endpunkten, Nutzerverwaltung mit Namensabfrage als Zugangsschranke, vollständiges Rezeptmodul mit Kategorien, Bewertung, Kochmodus, Filtern, Druckansicht, Uploads und KI-Import, dazu der Meal-Prep-Plan mit getrenntem Koch- und Essenstermin in zwei Ansichten — Monatskalender für den Überblick, Tagesansicht zum Bearbeiten. Dazu aus Phase 5 der wochenweise Vorschlagsmotor mit „Reste zuerst“, das Einplanen direkt vom Rezept aus, der Vorrat als vierte Hauptseite und die Mengenskalierung beim Kochen; aus Phase 6 und 7 die vollständige Einkaufsliste mit Zusammenfassen, anteiligem Abzug, Vorrats-Abgleich, Supermarktbereichen, Sinnbildern und dem Hinweis auf einen zweiten Einkauf. <strong>Als Nächstes: Phase 9 — über die Ideenliste entscheiden.</strong></p>
       <p style="margin-top:10px">Der Arbeitsplan hat <strong>dreizehn Phasen</strong>. Es folgen noch fünf Abschlussphasen in fester Reihenfolge: erst <strong>alles nachprüfen und aufräumen</strong> (8), dann <strong>über die Ideen entscheiden</strong> (9) — auch über die, die mir beim Bauen auffallen —, dann die <strong>Generalprobe mit echtem API-Schlüssel</strong> (10), dann ein <strong>letzter Durchgang</strong> über alles, was sich dabei geändert hat (11), zuletzt die <strong>Vorbereitung der Livestellung</strong> (12). Die Reihenfolge hat einen Grund: Man entscheidet nicht über Ideen, bevor man weiß, was schon da ist; und man testet nicht gründlich, bevor feststeht, was alles hineingehört.</p>
     </div>
 
@@ -393,7 +393,7 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       <div class="num">01</div>
       <div>
         <h3>Datenmodell &amp; Nutzerverwaltung <span class="chip go">erledigt</span></h3>
-        <p>Datenbankschema mit zwölf Tabellen und allen Korrekturen, in MySQL angelegt. PHP-API mit acht durchgetesteten Endpunkten. Nutzerwechsel direkt in der Kopfzeile, nicht nur in den Einstellungen. Umschalter für Hell, Dunkel und Geräteeinstellung. Namensabfrage versperrt die App, solange niemand angemeldet ist; Session per Cookie, Nutzerwechsel und Abmelden über die Einstellungen. API-Schlüssel pro Nutzer hinterlegbar. Seed-Skript getrennt von den Migrationen. Die Zutaten-Normalisierung fasst in der Stichprobe 12 von 12 Schreibweisen korrekt zusammen, ohne Kollisionen.</p>
+        <p>Datenbankschema mit allen Korrekturen, in MySQL angelegt — damals zwölf Tabellen, inzwischen vierzehn. PHP-API mit den ersten acht durchgetesteten Endpunkten. Nutzerwechsel direkt in der Kopfzeile, nicht nur in den Einstellungen. Umschalter für Hell, Dunkel und Geräteeinstellung. Namensabfrage versperrt die App, solange niemand angemeldet ist; Session per Cookie, Nutzerwechsel und Abmelden über die Einstellungen. API-Schlüssel pro Nutzer hinterlegbar. Seed-Skript getrennt von den Migrationen. Die Zutaten-Normalisierung fasst in der Stichprobe 12 von 12 Schreibweisen korrekt zusammen, ohne Kollisionen.</p>
       </div>
     </div>
 
@@ -492,7 +492,7 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
     <div class="phase">
       <div class="num">08</div>
       <div>
-        <h3>Bestandsaufnahme und Bereinigung <span class="chip">geplant</span></h3>
+        <h3>Bestandsaufnahme und Bereinigung <span class="chip go">erledigt</span></h3>
         <p>Bevor über Ideen entschieden und getestet wird, ein vollständiger Durchgang: <strong>Ist alles da, was je besprochen wurde?</strong> Jede Anforderung, jedes Todo und jede nebenbei genannte Änderung wird gegen Code und Dossier geprüft — nichts darf verlorengegangen oder übersehen worden sein.</p>
         <p style="margin-top:10px">Danach wird aufgeräumt: <strong>Code</strong> (toter Code raus, Doppelungen zusammenführen, Benennung vereinheitlichen), <strong>README</strong> und <strong>Dossier</strong> vollständig auf den Stand bringen — Erledigtes entfernen, Überholtes berichtigen, den Stand zum Weiterarbeiten pflegen.</p>
         <p style="margin-top:10px">Diese Phase steht bewusst <em>vor</em> der Ideenabfrage: Über etwas zu entscheiden, das man vielleicht schon gebaut hat, wäre vergeudete Zeit.</p>
@@ -577,7 +577,7 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
 <section>
   <h2>Datenmodell</h2>
   <p class="h2sub">Sechs Korrekturen gegenüber dem Konzept</p>
-  <p>Das Datenmodell aus Abschnitt 7 des Konzepts trägt weitgehend. An sechs Stellen deckt es die beschriebenen Funktionen aber noch nicht ab. Alle Änderungen sind additiv, das Konzept bricht dadurch nicht. Umgesetzt als <code>api/schema.sql</code> mit zwölf Tabellen.</p>
+  <p>Das Datenmodell aus Abschnitt 7 des Konzepts trägt weitgehend. An sechs Stellen deckt es die beschriebenen Funktionen aber noch nicht ab. Alle Änderungen sind additiv, das Konzept bricht dadurch nicht. Umgesetzt als <code>api/schema.sql</code>, inzwischen <strong>vierzehn Tabellen</strong> — dazugekommen sind <code>plan_entry_stock</code> (Mahlzeiten aus mehreren Vorratsposten) und <code>stores</code> (Läden für die Einkaufsliste).</p>
   <div class="tablewrap">
     <table>
       <thead><tr><th>#</th><th>Problem</th><th>Lösung</th></tr></thead>
@@ -712,8 +712,7 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       <h3>Fertiger Ordner für den Live-Server <span class="tag note">zum Schluss</span></h3>
       <p>Am Ende legt Claude einen Ordner auf den Schreibtisch, der alles enthält, was auf den Live-Server hochgeladen wird. Wichtig dabei: MealMap ist kein PHP-Projekt, sondern braucht Node auf dem Server – siehe offener Punkt weiter unten.</p>
     </div>
-    
-    
+
     
     <div class="item note">
       <h3>Änderungswünsche in beliebiger Sprache <span class="tag">Backlog</span></h3>
@@ -743,11 +742,12 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       <h3>API-Key liegt im Klartext <span class="tag warn">vor Livegang</span></h3>
       <p>Der Key wird serverseitig am Nutzer gespeichert, sonst könnte der Server die Imports nicht ausführen. In der lokalen MySQL-Datenbank ist das unkritisch. Sobald die App online geht, sollte er verschlüsselt abgelegt werden.</p>
     </div>
-    
-    
+
     <div class="item risk">
-      <h3>npm audit meldet postcss <span class="tag warn">Entscheidung offen</span></h3>
-      <p>Next 15.5.25 bringt intern eine postcss-Version mit, für die Sicherheitshinweise vorliegen. Betroffen ist die Build-Kette, nicht die laufende App; lokal ist das unkritisch. Bereinigen ließe es sich nur durch den Sprung auf Next 16 — ein Hauptversionswechsel, den ich nicht ungefragt mache. Spätestens vor dem Livegang entscheiden.</p>
+      <h3>npm audit meldet fünf Schwachstellen <span class="tag warn">Entscheidung offen</span></h3>
+      <p>Stand heute: <strong>eine mittlere, vier hohe</strong>. Betroffen sind <code>postcss</code> (über Next 15.5.25) sowie <code>browser-sync</code> mit <code>browser-sync-ui</code> und <code>immutable</code>.</p>
+      <p style="margin-top:10px"><strong>Nichts davon läuft im Betrieb.</strong> Die App wird als statischer Export ausgeliefert und von PHP bedient — weder Next noch BrowserSync sind auf dem Server. Die Meldungen betreffen ausschließlich die Werkzeuge zum Bauen und zum Entwickeln auf dem eigenen Rechner.</p>
+      <p style="margin-top:10px"><strong>Zu entscheiden bleiben zwei Dinge:</strong> Der postcss-Teil ließe sich nur mit dem Sprung auf <strong>Next 16</strong> bereinigen — ein Hauptversionswechsel, den ich nicht ungefragt mache. Der BrowserSync-Teil ließe sich durch Verzicht auf BrowserSync lösen; dann entfiele das automatische Neuladen und die Netzwerk-Adresse fürs Telefon. Beides gehört in Phase 12 entschieden, nicht vorher.</p>
     </div>
     <div class="item warn">
       <h3>Einheiten ohne saubere Umrechnung <span class="tag warn">Phase 6</span></h3>

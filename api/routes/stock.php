@@ -85,27 +85,6 @@ function route_stock_delete(string $id): never
 }
 
 /**
- * Bucht Portionen ab, ohne den Umweg über einen Plan-Eintrag – etwa wenn
- * zwischendurch etwas aufgegessen oder weggeworfen wird.
- */
-function route_stock_take(string $id): never
-{
-    $user = require_user();
-    $menge = (float) (body()['quantity'] ?? 1);
-
-    if ($menge <= 0) {
-        fail('Die Menge muss größer als 0 sein.');
-    }
-
-    $ab = vorrat_abbuchen($user['id'], $id, $menge);
-    if ($ab <= 0) {
-        fail('Der Posten wurde nicht gefunden.', 404);
-    }
-
-    send_json(['taken' => $ab, 'item' => vorrat_laden($id, $user['id'])]);
-}
-
-/**
  * Friert ein, was von einem gekochten Plan-Eintrag übrig ist.
  *
  * Die Portionszahl gibt Sarah selbst an – so beschreibt sie es auch: „vier

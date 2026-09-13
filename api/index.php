@@ -63,10 +63,10 @@ if (!in_array($route, ['/shopping-list/done', '/shopping-list/generate'], true)
     $muster = '/shopping-list/{id}' . ($tl[2] ?? '');
 }
 
-// Vorratsposten: /stock/{id} und /stock/{id}/take
-if (preg_match('#^/stock/([A-Za-z0-9_-]+)(/take)?$#', $route, $ts)) {
+// Vorratsposten: /stock/{id}
+if (preg_match('#^/stock/([A-Za-z0-9_-]+)$#', $route, $ts)) {
     $id = $ts[1];
-    $muster = '/stock/{id}' . ($ts[2] ?? '');
+    $muster = '/stock/{id}';
 }
 
 // Pfade mit zwei Kennungen: /recipes/{id}/images/{bildId}
@@ -217,9 +217,6 @@ switch ("$method $muster") {
 
     case 'DELETE /stock/{id}':
         route_stock_delete($id);
-
-    case 'PUT /stock/{id}/take':
-        route_stock_take($id);
 
     case 'POST /plan/entries/{id}/freeze':
         route_plan_entry_freeze($id);

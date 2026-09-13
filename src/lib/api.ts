@@ -616,13 +616,6 @@ export const api = {
   deleteStockItem: (id: string) =>
     request<{ deleted: boolean }>(`/stock/${id}`, { method: "DELETE" }),
 
-  /** Bucht Portionen ab, ohne Umweg über den Plan – aufgegessen, weggeworfen. */
-  takeStock: (id: string, quantity: number) =>
-    request<{ taken: number; item: ApiStockItem | null }>(`/stock/${id}/take`, {
-      method: "PUT",
-      body: { quantity },
-    }),
-
   /** Friert ein, was von einem gekochten Eintrag übrig ist. */
   freezePlanEntry: (
     id: string,
