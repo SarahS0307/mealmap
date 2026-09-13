@@ -12,6 +12,7 @@ require_once __DIR__ . '/lib/http.php';
 require_once __DIR__ . '/lib/db.php';
 require_once __DIR__ . '/lib/auth.php';
 
+zeitzone_setzen();
 apply_cors();
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
@@ -27,6 +28,8 @@ require_once __DIR__ . '/routes/session.php';
 require_once __DIR__ . '/routes/user.php';
 require_once __DIR__ . '/routes/categories.php';
 require_once __DIR__ . '/routes/recipes.php';
+require_once __DIR__ . '/routes/uploads.php';
+require_once __DIR__ . '/routes/import.php';
 
 /**
  * Zerlegt Pfade mit einer Kennung, etwa /recipes/abc123 oder
@@ -34,7 +37,18 @@ require_once __DIR__ . '/routes/recipes.php';
  */
 $id = '';
 $muster = $route;
-if (preg_match('#^/(recipes|categories)/([A-Za-z0-9_-]+)(/[a-z-]+)?$#', $route, $treffer)) {
+// Pfade mit zwei Kennungen: /recipes/{id}/images/{bildId}
+$bildId = '';
+if (preg_match('#^/recipes/([A-Za-z0-9_-]+)/images/([A-Za-z0-9_-]+)$#', $route, $t2)) {
+    $id = $t2[1];
+    $bildId = $t2[2];
+    $muster = '/recipes/{id}/images/{bildId}';
+}
+
+// /recipes/trash ist ein fester Pfad, keine Kennung.
+if ($muster === $route
+    && $route !== '/recipes/trash'
+    && preg_match('#^/(recipes|categories)/([A-Za-z0-9_-]+)(/[a-z-]+)?$#', $route, $treffer)) {
     $id = $treffer[2];
     $muster = '/' . $treffer[1] . '/{id}' . ($treffer[3] ?? '');
 }
@@ -76,6 +90,9 @@ switch ("$method $muster") {
     case 'GET /recipes':
         route_recipes_index();
 
+    case 'GET /recipes/trash':
+        route_recipes_trash();
+
     case 'POST /recipes':
         route_recipes_create();
 
@@ -90,6 +107,27 @@ switch ("$method $muster") {
 
     case 'POST /recipes/{id}/adjust':
         route_recipes_adjust($id);
+
+    case 'POST /recipes/{id}/restore':
+        route_recipes_restore($id);
+
+    case 'POST /uploads':
+        route_uploads_create();
+
+    case 'GET /import':
+        route_import_status();
+
+    case 'POST /import':
+        route_import_read();
+
+    case 'POST /recipes/{id}/images':
+        route_recipe_images_create($id);
+
+    case 'DELETE /recipes/{id}/images/{bildId}':
+        route_recipe_images_delete($id, $bildId);
+
+    case 'DELETE /recipes/{id}/permanent':
+        route_recipes_purge($id);
 
     case 'DELETE /recipes/{id}':
         route_recipes_delete($id);

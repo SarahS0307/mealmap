@@ -3,11 +3,12 @@
 
 require_once __DIR__ . '/../lib/ingredients.php';
 require_once __DIR__ . '/../lib/adjust.php';
+require_once __DIR__ . '/../lib/trash.php';
 
 /** Baut die vollständige Darstellung eines Rezepts inklusive Unterlisten. */
 function rezept_laden(string $id, string $userId): ?array
 {
-    $r = query_one('SELECT * FROM recipes WHERE id = ? AND user_id = ?', [$id, $userId]);
+    $r = query_one('SELECT * FROM recipes WHERE id = ? AND user_id = ? AND deleted_at IS NULL', [$id, $userId]);
     if (!$r) {
         return null;
     }
@@ -18,6 +19,10 @@ function rezept_laden(string $id, string $userId): ?array
     );
     $schritte = query(
         'SELECT id, title, content, timer_seconds FROM steps WHERE recipe_id = ? ORDER BY position ASC',
+        [$id],
+    );
+    $bilder = query(
+        'SELECT id, url FROM recipe_images WHERE recipe_id = ? ORDER BY position ASC',
         [$id],
     );
     $kategorien = query(
@@ -58,19 +63,84 @@ function rezept_laden(string $id, string $userId): ?array
             ],
             $schritte,
         ),
+        'images'     => $bilder,
         'categories' => $kategorien,
     ];
 }
 
+/**
+ * Liste der Rezepte, mit kombinierbaren Filtern aus der Adresszeile:
+ *
+ *   q           Suchbegriff über Titel, Zutaten und Kategorien
+ *   category    Kennung einer Kategorie
+ *   freezable   1 oder 0
+ *   minRating   Mindestbewertung 1–5
+ *   maxMinutes  höchste Zubereitungszeit
+ *
+ * Die Zutatensuche läuft zusätzlich über den vereinheitlichten Schlüssel –
+ * „Zwiebeln“ findet damit auch ein Rezept, in dem „rote Zwiebeln“ steht.
+ */
 function route_recipes_index(): never
 {
     $user = require_user();
 
-    // Nur die Felder, die die Liste braucht – nicht das ganze Rezept.
+    $bedingungen = ['r.user_id = ?', 'r.deleted_at IS NULL'];
+    $werte = [$user['id']];
+
+    $suche = trim((string) ($_GET['q'] ?? ''));
+    if ($suche !== '') {
+        $wie = '%' . $suche . '%';
+        // Bei Zutaten wird nur am Wortanfang gesucht, nicht mitten im Wort.
+        // Sonst fände „Zwiebeln“ auch Frühlingszwiebeln – und das sind laut
+        // Zutatenregeln ausdrücklich verschiedene Dinge.
+        $beginn = $suche . '%';
+        $wortanfang = '% ' . $suche . '%';
+        $schluesselBeginn = zutaten_schluessel($suche) . '%';
+
+        $bedingungen[] = '(
+            r.title LIKE ?
+            OR EXISTS (SELECT 1 FROM ingredients i
+                        WHERE i.recipe_id = r.id
+                          AND (i.name LIKE ? OR i.name LIKE ? OR i.name_key LIKE ?))
+            OR EXISTS (SELECT 1 FROM recipe_categories rc
+                         JOIN categories c ON c.id = rc.category_id
+                        WHERE rc.recipe_id = r.id AND c.name LIKE ?)
+        )';
+        array_push($werte, $wie, $beginn, $wortanfang, $schluesselBeginn, $wie);
+    }
+
+    $kategorie = trim((string) ($_GET['category'] ?? ''));
+    if ($kategorie !== '') {
+        $bedingungen[] = 'EXISTS (SELECT 1 FROM recipe_categories rc
+                                   WHERE rc.recipe_id = r.id AND rc.category_id = ?)';
+        $werte[] = $kategorie;
+    }
+
+    if (isset($_GET['freezable']) && $_GET['freezable'] !== '') {
+        $bedingungen[] = 'r.freezable = ?';
+        $werte[] = $_GET['freezable'] === '1' ? 1 : 0;
+    }
+
+    $minBewertung = (int) ($_GET['minRating'] ?? 0);
+    if ($minBewertung >= 1 && $minBewertung <= 5) {
+        $bedingungen[] = 'r.rating >= ?';
+        $werte[] = $minBewertung;
+    }
+
+    $maxMinuten = (int) ($_GET['maxMinutes'] ?? 0);
+    if ($maxMinuten > 0) {
+        // Rezepte ohne Zeitangabe fallen hier bewusst heraus: Wer nach
+        // „höchstens 30 Minuten“ sucht, will keine Rezepte unbekannter Dauer.
+        $bedingungen[] = 'r.prep_minutes IS NOT NULL AND r.prep_minutes <= ?';
+        $werte[] = $maxMinuten;
+    }
+
     $rows = query(
-        'SELECT id, title, rating, freezable, servings, prep_minutes, updated_at
-           FROM recipes WHERE user_id = ? ORDER BY title ASC',
-        [$user['id']],
+        'SELECT r.id, r.title, r.rating, r.freezable, r.servings, r.prep_minutes
+           FROM recipes r
+          WHERE ' . implode(' AND ', $bedingungen) . '
+          ORDER BY r.title ASC',
+        $werte,
     );
 
     // Kategorien für alle Rezepte in einem Rutsch, statt je Rezept einzeln.
@@ -131,7 +201,22 @@ function rezept_eingaben(): array
         fail('Die Portionszahl muss zwischen 1 und 99 liegen.');
     }
 
+    // Quelle: eingebetteter Link oder Video. Videoportale werden erkannt,
+    // damit die Ansicht sie einbetten statt nur zu verlinken.
+    $quelle = trim((string) ($b['sourceUrl'] ?? ''));
+    $quelleTyp = null;
+    if ($quelle !== '') {
+        if (!filter_var($quelle, FILTER_VALIDATE_URL)) {
+            fail('Die Adresse der Quelle sieht nicht nach einem Link aus.');
+        }
+        $quelleTyp = quelle_art_erkennen($quelle);
+    } else {
+        $quelle = null;
+    }
+
     return [
+        'sourceUrl'   => $quelle,
+        'sourceType'  => $quelleTyp,
         'title'       => mb_substr($titel, 0, 255),
         'notes'       => trim((string) ($b['notes'] ?? '')) ?: null,
         'comment'     => trim((string) ($b['comment'] ?? '')) ?: null,
@@ -214,10 +299,12 @@ function route_recipes_create(): never
     db()->beginTransaction();
     try {
         execute(
-            'INSERT INTO recipes (id, user_id, title, notes, comment, rating, freezable, servings, prep_minutes)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'INSERT INTO recipes (id, user_id, title, notes, comment, rating, freezable,
+                                  servings, prep_minutes, source_type, source_url)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [$id, $user['id'], $e['title'], $e['notes'], $e['comment'], $e['rating'],
-             $e['freezable'], $e['servings'], $e['prepMinutes']],
+             $e['freezable'], $e['servings'], $e['prepMinutes'],
+             $e['sourceType'], $e['sourceUrl']],
         );
         rezept_unterlisten_schreiben($id, $user['id'], $e);
         db()->commit();
@@ -234,7 +321,10 @@ function route_recipes_update(string $id): never
 {
     $user = require_user();
 
-    $vorhanden = query_one('SELECT id FROM recipes WHERE id = ? AND user_id = ?', [$id, $user['id']]);
+    $vorhanden = query_one(
+        'SELECT id FROM recipes WHERE id = ? AND user_id = ? AND deleted_at IS NULL',
+        [$id, $user['id']],
+    );
     if (!$vorhanden) {
         fail('Dieses Rezept gibt es nicht.', 404);
     }
@@ -245,10 +335,12 @@ function route_recipes_update(string $id): never
     try {
         execute(
             'UPDATE recipes SET title = ?, notes = ?, comment = ?, rating = ?,
-                    freezable = ?, servings = ?, prep_minutes = ?
+                    freezable = ?, servings = ?, prep_minutes = ?,
+                    source_type = ?, source_url = ?
               WHERE id = ?',
             [$e['title'], $e['notes'], $e['comment'], $e['rating'],
-             $e['freezable'], $e['servings'], $e['prepMinutes'], $id],
+             $e['freezable'], $e['servings'], $e['prepMinutes'],
+             $e['sourceType'], $e['sourceUrl'], $id],
         );
         rezept_unterlisten_schreiben($id, $user['id'], $e);
         db()->commit();
@@ -266,7 +358,10 @@ function route_recipes_rate(string $id): never
 {
     $user = require_user();
 
-    $vorhanden = query_one('SELECT id FROM recipes WHERE id = ? AND user_id = ?', [$id, $user['id']]);
+    $vorhanden = query_one(
+        'SELECT id FROM recipes WHERE id = ? AND user_id = ? AND deleted_at IS NULL',
+        [$id, $user['id']],
+    );
     if (!$vorhanden) {
         fail('Dieses Rezept gibt es nicht.', 404);
     }
@@ -289,18 +384,88 @@ function route_recipes_rate(string $id): never
     send_json(['recipe' => rezept_laden($id, $user['id'])]);
 }
 
+/**
+ * Verschiebt ein Rezept in den Papierkorb. Es bleibt mitsamt Zutaten und
+ * Schritten erhalten und lässt sich innerhalb der Frist zurückholen.
+ */
 function route_recipes_delete(string $id): never
 {
     $user = require_user();
 
-    $vorhanden = query_one('SELECT id FROM recipes WHERE id = ? AND user_id = ?', [$id, $user['id']]);
+    $vorhanden = query_one(
+        'SELECT id FROM recipes WHERE id = ? AND user_id = ? AND deleted_at IS NULL',
+        [$id, $user['id']],
+    );
     if (!$vorhanden) {
         fail('Dieses Rezept gibt es nicht.', 404);
     }
 
+    execute('UPDATE recipes SET deleted_at = NOW() WHERE id = ?', [$id]);
+    send_json(['deleted' => true, 'restorableDays' => PAPIERKORB_TAGE]);
+}
+
+/** Zeigt, was im Papierkorb liegt, und räumt dabei Abgelaufenes weg. */
+function route_recipes_trash(): never
+{
+    $user = require_user();
+    papierkorb_aufraeumen($user['id']);
+
+    $rows = query(
+        'SELECT id, title, deleted_at,
+                GREATEST(0, ? - DATEDIFF(NOW(), deleted_at)) AS verbleibend
+           FROM recipes
+          WHERE user_id = ? AND deleted_at IS NOT NULL
+          ORDER BY deleted_at DESC',
+        [PAPIERKORB_TAGE, $user['id']],
+    );
+
+    send_json([
+        'recipes' => array_map(
+            static fn(array $r): array => [
+                'id'             => $r['id'],
+                'title'          => $r['title'],
+                'deletedAt'      => $r['deleted_at'],
+                'remainingDays'  => (int) $r['verbleibend'],
+            ],
+            $rows,
+        ),
+        'retentionDays' => PAPIERKORB_TAGE,
+    ]);
+}
+
+/** Holt ein Rezept aus dem Papierkorb zurück. */
+function route_recipes_restore(string $id): never
+{
+    $user = require_user();
+
+    $vorhanden = query_one(
+        'SELECT id FROM recipes WHERE id = ? AND user_id = ? AND deleted_at IS NOT NULL',
+        [$id, $user['id']],
+    );
+    if (!$vorhanden) {
+        fail('Dieses Rezept liegt nicht im Papierkorb.', 404);
+    }
+
+    execute('UPDATE recipes SET deleted_at = NULL WHERE id = ?', [$id]);
+    send_json(['restored' => true, 'recipe' => rezept_laden($id, $user['id'])]);
+}
+
+/** Löscht ein Rezept aus dem Papierkorb endgültig. */
+function route_recipes_purge(string $id): never
+{
+    $user = require_user();
+
+    $vorhanden = query_one(
+        'SELECT id FROM recipes WHERE id = ? AND user_id = ? AND deleted_at IS NOT NULL',
+        [$id, $user['id']],
+    );
+    if (!$vorhanden) {
+        fail('Dieses Rezept liegt nicht im Papierkorb.', 404);
+    }
+
     // Zutaten, Schritte und Kategoriezuordnungen gehen über die Fremdschlüssel mit.
     execute('DELETE FROM recipes WHERE id = ?', [$id]);
-    send_json(['deleted' => true]);
+    send_json(['purged' => true]);
 }
 
 /**
@@ -401,4 +566,32 @@ function route_recipes_adjust(string $id): never
         'applied'  => true,
         'recipe'   => rezept_laden($id, $user['id']),
     ]);
+}
+
+/**
+ * Erkennt, ob hinter einer Adresse ein Video steckt.
+ *
+ * Nur so grob wie nötig: Die Ansicht bettet bekannte Videoportale ein und
+ * zeigt alles Übrige als Link. Falsch erkannt schadet nichts – dann steht
+ * eben ein Link statt einer Vorschau.
+ */
+function quelle_art_erkennen(string $url): string
+{
+    $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+    $host = preg_replace('/^www\./', '', $host) ?? $host;
+
+    $videoportale = [
+        'youtube.com', 'youtu.be', 'm.youtube.com',
+        'vimeo.com', 'player.vimeo.com',
+        'tiktok.com', 'vm.tiktok.com',
+        'instagram.com',
+    ];
+
+    foreach ($videoportale as $portal) {
+        if ($host === $portal || str_ends_with($host, '.' . $portal)) {
+            return 'video';
+        }
+    }
+
+    return 'link';
 }

@@ -49,10 +49,14 @@ CREATE TABLE IF NOT EXISTS recipes (
   -- video | link
   source_type  VARCHAR(16)  NULL,
   source_url   TEXT         NULL,
+  -- Gesetzt, sobald das Rezept im Papierkorb liegt. Endgültig gelöscht wird
+  -- erst nach Ablauf der Frist (siehe PAPIERKORB_TAGE in lib/trash.php).
+  deleted_at   DATETIME     NULL,
   created_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   KEY idx_recipes_user (user_id),
+  KEY idx_recipes_deleted (deleted_at),
   CONSTRAINT fk_recipes_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

@@ -16,6 +16,18 @@ return [
         'password' => 'root',
     ],
 
+    // Wohin hochgeladene Bilder und PDFs gespeichert werden und unter welcher
+    // Adresse sie erreichbar sind.
+    //   lokal: der Ordner uploads/ im Projekt, erreichbar unter /MealMap/uploads
+    //   live:  uploads/ neben der App, erreichbar unter /uploads
+    // Der Ordner darf beim Hochladen auf den Server nie mitgelöscht werden.
+    'uploads_dir' => __DIR__ . '/../uploads',
+    'uploads_url' => '/MealMap/uploads',
+
+    // Zeitzone für PHP. Muss zu der passen, in der MySQL seine Zeitstempel
+    // schreibt, sonst gehen Datumsrechnungen daneben.
+    'timezone' => 'Europe/Berlin',
+
     // 'dev' erlaubt Anfragen vom Next-Entwicklungsserver auf Port 3000.
     // Live unbedingt auf 'prod' stellen.
     'env' => 'dev',

@@ -142,11 +142,23 @@ export async function sync() {
  * können. Der Neubau läuft damit automatisch – die Seite im Browser musst du
  * danach einmal neu laden (Cmd+R).
  */
+/**
+ * Beobachtet die Quelldateien, baut das Bündel neu und lädt die Seite im
+ * Browser automatisch nach.
+ *
+ * BrowserSync läuft dabei als reiner Meldedienst: Es liefert die Seite nicht
+ * aus – das macht weiterhin Apache unter localhost:8888/MealMap/. Die Seite
+ * lädt nur den BrowserSync-Client nach und horcht auf dessen Signal. So bleibt
+ * die gewohnte Adresse bestehen, und es gibt trotzdem automatisches Nachladen.
+ */
 export function watch() {
   let laeuft = false;
   let erneutBauen = false;
 
-  function bauen() {
+  const MELDEPORT = Number(process.env.BS_PORT ?? 3001);
+  const clientUrl = `http://{host}:${MELDEPORT}/browser-sync/browser-sync-client.js`;
+
+  function bauen(danach) {
     if (laeuft) {
       // Während eines laufenden Baus gemeldete Änderungen nicht verlieren.
       erneutBauen = true;
@@ -159,40 +171,64 @@ export function watch() {
 
     const bau = spawn(process.platform === "win32" ? "npm.cmd" : "npm", ["run", "preview"], {
       stdio: ["ignore", "ignore", "inherit"],
-      env: process.env,
+      env: { ...process.env, NEXT_PUBLIC_BROWSERSYNC_URL: clientUrl },
     });
 
     bau.on("exit", (code) => {
       laeuft = false;
       const dauer = ((Date.now() - start) / 1000).toFixed(1);
-      console.log(
-        code === 0
-          ? ` fertig nach ${dauer}s – Seite neu laden (Cmd+R)`
-          : ` FEHLGESCHLAGEN (Code ${code})`,
-      );
+
+      if (code === 0) {
+        console.log(` fertig nach ${dauer}s – Seite wird neu geladen`);
+        browserSync.reload();
+      } else {
+        console.log(` FEHLGESCHLAGEN (Code ${code}) – Seite bleibt wie sie ist`);
+      }
+
       if (erneutBauen) {
         erneutBauen = false;
         bauen();
+      } else if (danach) {
+        danach();
       }
     });
   }
 
-  console.log(
-    "\n[watch] Beobachte src/, api/ und public/.\n" +
-      "[watch] Adresse: http://localhost:8888/MealMap/\n",
-  );
+  return new Promise((fertig) => {
+    bauen(() => {
+      // Ohne server und ohne proxy startet BrowserSync im Meldebetrieb: Es
+      // liefert nur seinen Client und den Websocket aus.
+      browserSync.init(
+        {
+          port: MELDEPORT,
+          ui: false,
+          open: false,
+          notify: false,
+          cors: true,
+          logSnippet: false,
+        },
+        () => {
+          console.log(
+            "\n[watch] Adresse: http://localhost:8888/MealMap/\n" +
+              "[watch] Die Seite lädt sich nach jedem Bau von selbst neu.\n",
+          );
 
-  // dist/ und out/ bewusst nicht beobachten – sonst löst der Bau sich selbst aus.
-  gulp.watch(
-    ["src/**/*", "api/**/*", "public/**/*", "next.config.ts"],
-    { ignoreInitial: true },
-    (fertig) => {
-      bauen();
-      fertig();
-    },
-  );
+          // dist/ und out/ bewusst nicht beobachten – sonst löst der Bau sich
+          // selbst wieder aus.
+          gulp.watch(
+            ["src/**/*", "api/**/*", "public/**/*", "next.config.ts"],
+            { ignoreInitial: true },
+            (erledigt) => {
+              bauen();
+              erledigt();
+            },
+          );
 
-  bauen();
+          fertig();
+        },
+      );
+    });
+  });
 }
 
 export default sync;

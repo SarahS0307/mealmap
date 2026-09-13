@@ -1,6 +1,23 @@
 <?php
 /** Kleine Helfer für JSON-Antworten und Anfrage-Auswertung. */
 
+/**
+ * Zeitzone für PHP festlegen.
+ *
+ * Ohne Angabe läuft PHP auf UTC, MySQL aber auf der Systemzeit des Servers.
+ * Jede Datumsrechnung, die beide mischt, wäre dann um Stunden daneben – beim
+ * Papierkorb um einen Tag, beim Meal-Prep-Plan um einen ganzen Termin.
+ */
+function zeitzone_setzen(): void
+{
+    static $gesetzt = false;
+    if ($gesetzt) {
+        return;
+    }
+    date_default_timezone_set(config()['timezone'] ?? 'Europe/Berlin');
+    $gesetzt = true;
+}
+
 function config(): array
 {
     static $config = null;

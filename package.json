@@ -6,15 +6,16 @@
     "dev": "next dev",
     "sync": "gulp sync",
     "build": "next build",
-    "preview": "NEXT_PUBLIC_BASE_PATH=/MealMap NEXT_PUBLIC_API_BASE=/MealMap/api next build && node scripts/bundle.mjs --with-config --base=/MealMap",
+    "preview": "npm run clean && NEXT_PUBLIC_BASE_PATH=/MealMap NEXT_PUBLIC_API_BASE=/MealMap/api next build && node scripts/bundle.mjs --with-config --base=/MealMap",
     "watch": "gulp watch",
-    "bundle": "NEXT_PUBLIC_BASE_PATH= NEXT_PUBLIC_API_BASE=/api next build && node scripts/bundle.mjs",
+    "bundle": "npm run clean && NEXT_PUBLIC_BASE_PATH= NEXT_PUBLIC_API_BASE=/api next build && node scripts/bundle.mjs",
     "start": "next start",
     "lint": "eslint",
     "icons": "node scripts/build-icons.mjs",
     "db:migrate": "sh scripts/php.sh api/migrate.php",
     "db:seed": "sh scripts/php.sh api/seed.php",
-    "db:reindex": "sh scripts/php.sh api/reindex.php"
+    "db:reindex": "sh scripts/php.sh api/reindex.php",
+    "clean": "rm -rf .next out"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

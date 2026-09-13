@@ -14,6 +14,7 @@ MySQL, aber ohne Node. Daraus ergibt sich die Zweiteilung:
 | --- | --- | --- |
 | Oberfläche | Next.js, gebaut als **statischer Export** (reines HTML/CSS/JS) | `src/`, gebaut nach `out/` |
 | Daten | **PHP-API** mit PDO, **MySQL** | `api/` |
+| Hochgeladene Dateien | Bilder und PDFs | `uploads/` |
 
 Die Oberfläche spricht ausschließlich über `src/lib/api.ts` mit der API. Es gibt
 keinen Node-Server im Betrieb – der Entwicklungsserver von Next.js dient nur dem
@@ -29,8 +30,10 @@ npm install
 cp api/config.example.php api/config.php
 npm run db:migrate
 npm run db:seed
-npm run preview
+npm run watch
 ```
+
+Der Ordner `uploads/` muss beschreibbar sein – dort landen Bilder und PDFs.
 
 `api/config.php` wird nicht eingecheckt, weil die Datei Zugangsdaten enthält –
 daneben liegt `config.example.php` als Vorlage.
@@ -58,9 +61,12 @@ npm run watch
 
 Danach: **http://localhost:8888/MealMap/**
 
-`npm run watch` beobachtet `src/`, `api/` und `public/` und baut das Bündel bei
-jeder Änderung neu (etwa 6 Sekunden). Die Seite im Browser danach einmal neu
-laden – automatisches Nachladen ginge nur über einen zweiten Port.
+`npm run watch` beobachtet `src/`, `api/` und `public/`, baut das Bündel bei jeder
+Änderung neu (etwa 8 Sekunden) und **lädt die Seite im Browser automatisch nach**.
+
+BrowserSync läuft dabei als reiner Meldedienst auf Port 3001: Ausgeliefert wird
+weiterhin von Apache, die Seite lädt nur ein kleines Skript nach und horcht
+darauf, ob neu gebaut wurde. Die gewohnte Adresse bleibt dadurch unverändert.
 
 Einmalig bauen ohne Beobachten: `npm run preview`.
 
@@ -78,7 +84,8 @@ npm run sync           # zusätzlich BrowserSync und eine URL fürs Handy
 
 | Befehl | Wozu |
 | --- | --- |
-| `npm run watch` | Beobachtet die Quelldateien und baut bei jeder Änderung neu – der normale Weg beim Arbeiten |
+| `npm run watch` | Beobachtet die Quelldateien, baut neu und lädt die Seite automatisch nach – der normale Weg beim Arbeiten |
+| `npm run clean` | Löscht `.next` und `out`. Läuft vor jedem Bau automatisch mit |
 | `npm run preview` | Baut `dist/` einmalig für den Unterordner `/MealMap`, inklusive lokaler Zugangsdaten |
 | `npm run bundle` | Baut `dist/` **ohne** Zugangsdaten – das ist der Ordner für den Server |
 | `npm run dev` | Next.js auf Port 3000 |
@@ -112,6 +119,8 @@ src/components/   Layout, Navigation, Logo, Formulare, wiederverwendbare Baustei
 src/lib/          API-Zugriff, Navigation, Wertelisten, Hilfsfunktionen
 api/              PHP-API: Einstiegspunkt, Routen, Datenbank, Schema
 api/schema.sql    Datenbankstruktur – live über phpMyAdmin einspielbar
+api/upgrades.php  nachträgliche Schemaänderungen für bestehende Datenbanken
+uploads/          hochgeladene Bilder und PDFs – niemals mitlöschen
 dist/             erzeugtes Bündel: gebaute Oberfläche + api/, so wie es live liegt
 assets/           Quelldateien für Logo und Icons
 docs/             Dossier und Moodboard
@@ -121,9 +130,37 @@ scripts/          Hilfsskripte
 Farben und Schriften liegen als Design-Tokens in `src/app/globals.css`. shadcn/ui
 setzt darauf auf, jede neue Komponente erbt die Palette also automatisch.
 
+## KI-Import
+
+Rezepte lassen sich aus Text, einem Link, einem Foto oder einem PDF übernehmen.
+Dafür braucht es einen API-Schlüssel, den jede Nutzerin in den Einstellungen
+hinterlegt. **Ohne Schlüssel funktioniert die App vollständig weiter** – dann
+werden Rezepte von Hand eingegeben, und der Import sagt das auch.
+
+Der Aufruf geht über rohes HTTP (`api/lib/claude.php`, Modell `claude-opus-5`),
+nicht über das PHP-SDK: Das Projekt hat bewusst keine Composer-Abhängigkeiten,
+damit auf den Server nur Dateien hochgeladen werden müssen.
+
+Eine Quelle kann mehrere Rezepte enthalten. Sie werden einzeln zur Bestätigung
+vorgelegt; gespeichert wird nur, was angehakt bleibt.
+
 ## Sicherheit
 
 Der Schlüssel für den KI-Import wird ausschließlich serverseitig gespeichert und
 niemals an den Browser zurückgegeben – die API meldet nur, *ob* einer hinterlegt
-ist. Vor dem Livegang stehen zwei weitere Punkte an, die im Dossier vermerkt sind:
-nur hinterlegte Namen zulassen und der Zugriffsschutz.
+ist.
+
+Bei Uploads wird der **Dateiinhalt** geprüft, nicht die Endung, und der Dateiname
+neu vergeben. Erlaubt sind JPEG, PNG, WebP, HEIC und PDF bis 12 MB.
+
+Vor dem Livegang stehen zwei Punkte an, die im Dossier vermerkt sind: nur
+hinterlegte Namen zulassen und der Zugriffsschutz.
+
+## Beim Hochladen auf den Server
+
+`npm run bundle` erzeugt `dist/` ohne Zugangsdaten. Auf dem Server zusätzlich:
+
+- `api/config.php` aus `config.example.php` anlegen und ausfüllen
+- `api/schema.sql` über phpMyAdmin einspielen
+- einen ersten Nutzer in die Tabelle `users` eintragen
+- **`uploads/` niemals mitlöschen** – dort liegen alle Bilder und PDFs

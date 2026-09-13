@@ -1,0 +1,5 @@
+Dieser Ordner nimmt hochgeladene Bilder und PDFs auf.
+
+Er liegt bewusst außerhalb von dist/, weil dist/ bei jedem Bau neu entsteht –
+Uploads würden sonst bei jedem Bau verschwinden. Beim Hochladen auf den Server
+darf dieser Ordner deshalb nie mitgelöscht werden.

@@ -15,6 +15,7 @@ if (PHP_SAPI !== 'cli') {
 }
 
 require_once __DIR__ . '/lib/db.php';
+require_once __DIR__ . '/upgrades.php';
 
 $sql = file_get_contents(__DIR__ . '/schema.sql');
 if ($sql === false) {
@@ -48,6 +49,16 @@ foreach ($statements as $statement) {
 }
 
 echo "Struktur angelegt. Tabellen: $count\n";
+
+$upgrades = upgrades_ausfuehren($pdo);
+if ($upgrades !== []) {
+    echo "Nachträgliche Änderungen:\n";
+    foreach ($upgrades as $u) {
+        echo "  $u\n";
+    }
+} else {
+    echo "Keine nachträglichen Änderungen nötig.\n";
+}
 
 $tables = $pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
 echo "In der Datenbank: " . implode(', ', $tables) . "\n";

@@ -203,13 +203,13 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
 <div class="wrap">
 
 <header>
-  <p class="eyebrow">Projektdossier &middot; Stand 12. September 2026, 20:35 Uhr</p>
+  <p class="eyebrow">Projektdossier &middot; Stand 13. September 2026, 09:30 Uhr</p>
   <h1>MealMap</h1>
   <p class="lede">Rezepte, Meal-Prep-Plan und Einkaufsliste in einer Webapp. Dieses Dossier hält fest, was entschieden ist, was gebaut wird und was noch offen liegt.</p>
   <div class="meta">
     <span><b>Ordner</b> ~/Sites/MealMap</span>
     <span><b>Quelle</b> mealmap-konzept.md</span>
-    <span><b>Phase</b> 0 bis 2 erledigt</span>
+    <span><b>Phase</b> 0 bis 3 erledigt</span>
     <span><b>Lokal</b> localhost:3000</span>
   </div>
 </header>
@@ -229,7 +229,7 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
   <div class="stack">
     <div class="item note">
       <h3>Wo das Projekt steht</h3>
-      <p><strong>Phase 0 bis 2 sind fertig und geprüft.</strong> Grundgerüst, Design nach Moodboard, Datenbankschema mit zwölf Tabellen, PHP-API mit 19 Endpunkten, Nutzerverwaltung mit Namensabfrage als Zugangsschranke, vollständiges Rezeptmodul mit Kategorien und Bewertung. <strong>Als Nächstes: Phase 3 — Import aus Bild, PDF und Link, Kochmodus mit Timern, PDF-Export, Filter.</strong></p>
+      <p><strong>Phase 0 bis 3 sind fertig und geprüft.</strong> Grundgerüst, Design nach Moodboard, Datenbankschema mit zwölf Tabellen, PHP-API mit 26 Endpunkten, Nutzerverwaltung mit Namensabfrage als Zugangsschranke, vollständiges Rezeptmodul mit Kategorien, Bewertung, Kochmodus, Filtern, Druckansicht, Uploads und KI-Import. <strong>Als Nächstes: Phase 4 — Meal-Prep-Plan, datumsweise Ansicht, manuelles Einplanen, Marker.</strong></p>
     </div>
 
     <div class="item note">
@@ -242,7 +242,9 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       <p><strong>1.</strong> Lokal liegt die App unter <code>/MealMap</code>, live an der Wurzel. Deshalb setzen <code>preview</code> und <code>bundle</code> <code>basePath</code> unterschiedlich. Den Server-Ordner immer mit <code>npm run bundle</code> bauen, nie mit <code>preview</code>.<br>
       <strong>2.</strong> <code>npm run build</code> nicht starten, während der Entwicklungsserver läuft — beide schreiben nach <code>.next</code>.<br>
       <strong>3.</strong> Nach jeder Änderung muss <code>npm run preview</code> neu laufen, sonst zeigt <code>localhost:8888/MealMap/</code> den alten Stand.<br>
-      <strong>4.</strong> Dateien aus <code>public/</code> immer über <code>asset()</code> aus <code>src/lib/paths.ts</code> ansprechen. <code>next/image</code> setzt bei abgeschalteter Bildoptimierung <em>kein</em> <code>basePath</code> davor — ein direkter Pfad funktioniert live, bricht aber lokal.</p>
+      <strong>4.</strong> Datumsrechnungen nie zwischen PHP und MySQL mischen, ohne die Zeitzone zu prüfen. PHP läuft ohne Angabe auf UTC, MySQL auf der Systemzeit — das waren hier zwei Stunden Unterschied. <code>api/lib/http.php</code> setzt die Zeitzone jetzt aus der Konfiguration; Fristen werden trotzdem lieber in SQL gerechnet, damit nur eine Uhr im Spiel ist.<br>
+      <strong>5.</strong> <code>uploads/</code> beim Hochladen auf den Server nie mitlöschen — dort liegen Sarahs Bilder und PDFs, und der Ordner entsteht nicht neu.<br>
+      <strong>6.</strong> Dateien aus <code>public/</code> immer über <code>asset()</code> aus <code>src/lib/paths.ts</code> ansprechen. <code>next/image</code> setzt bei abgeschalteter Bildoptimierung <em>kein</em> <code>basePath</code> davor — ein direkter Pfad funktioniert live, bricht aber lokal.</p>
     </div>
 
     <div class="item note">
@@ -324,9 +326,24 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       <span class="why">Moos, Terrakotta, Senfgelb und Creme, dazu Outfit und Work Sans — durchgehend serifenlos. Liegt als Token-Satz in <code>globals.css</code>, nicht verstreut im Code: ein Farbwechsel trifft damit die ganze App auf einmal. In den Einstellungen lässt sich zwischen Hell, Dunkel und Geräteeinstellung wählen.</span></dd>
     </div>
     <div class="dec">
+      <dt>Aufruf der KI</dt>
+      <dd><strong>Rohes HTTP statt PHP-SDK</strong>
+      <span class="why">Der Import ruft die Anthropic-API direkt über cURL auf (<code>api/lib/claude.php</code>, Modell <code>claude-opus-5</code>, strukturierte Ausgabe per JSON-Schema). Ein SDK brächte Composer und einen <code>vendor</code>-Ordner mit — auf Strato wird aber nur hochgeladen, ohne Paketverwaltung. Der Schlüssel gehört dem Nutzer, liegt in der Datenbank und verlässt den Server nie.</span></dd>
+    </div>
+    <div class="dec">
+      <dt>Hochgeladene Dateien</dt>
+      <dd><strong>Im Ordner <code>uploads/</code>, außerhalb des Bündels</strong>
+      <span class="why">Bilder und PDFs liegen bewusst nicht in <code>dist/</code> — das entsteht bei jedem Bau neu und würde sie mitnehmen. <strong>Beim Hochladen auf den Server darf <code>uploads/</code> nie mitgelöscht werden.</strong> Geprüft wird der Dateiinhalt, nicht die Endung; der Dateiname wird neu vergeben.</span></dd>
+    </div>
+    <div class="dec">
+      <dt>PDF-Erzeugung</dt>
+      <dd><strong>Über den Druckdialog des Browsers, ohne Zusatzpaket</strong>
+      <span class="why">Eine Druckvorlage in <code>globals.css</code> blendet alles Bedienbare aus; „Als PDF sichern“ erledigt den Rest. Das setzt den Satz besser als eine JavaScript-Bibliothek und braucht keinen Server — auf dem Webspace gäbe es dafür ohnehin keinen. Markiert wird über <code>data-print="aus"</code> und <code>data-print="nur"</code>.</span></dd>
+    </div>
+    <div class="dec">
       <dt>Entwicklungsserver</dt>
       <dd><strong>Next.js, wahlweise mit BrowserSync-Proxy davor</strong>
-      <span class="why"><code>npm run dev</code> startet nur Next auf Port 3000. <code>npm run sync</code> startet zusätzlich BrowserSync auf 3001 — dafür gibt es eine Netzwerk-URL fürs Handy und synchrones Scrollen und Klicken über mehrere Geräte. Next bringt sein Hot Reloading selbst mit, BrowserSync reicht den Websocket per <code>ws: true</code> durch.</span></dd>
+      <span class="why"><code>npm run watch</code> ist der normale Weg: Es baut bei jeder Änderung neu und lädt die Seite im Browser automatisch nach. BrowserSync läuft dabei als reiner <strong>Meldedienst</strong> auf Port 3001 — ausgeliefert wird weiterhin von Apache unter <code>localhost:8888/MealMap/</code>, die Seite lädt nur das Melde-Skript nach. Die gewohnte Adresse bleibt damit unverändert. <code>npm run dev</code> (Port 3000) bleibt als Schnellmodus erhalten.</span></dd>
     </div>
     
     <div class="dec">
@@ -372,19 +389,27 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       </div>
     </div>
 
-    <div class="phase">
+    <div class="phase done">
       <div class="num">03</div>
       <div>
-        <h3>Rezepte, Erweiterungen <span class="chip hold">als Nächstes</span></h3>
-        <p>Bild- und PDF-Upload, Webseiten- und Video-Link mit Embed, KI-Import mit Fallback auf manuelle Eingabe, Kategorie-Vorschläge, Kochmodus mit Timern und live skalierbaren Portionen, PDF-Export, Filter und Volltextsuche.</p>
+        <h3>Rezepte, Erweiterungen <span class="chip go">erledigt</span></h3>
+        <p>In sechs Teilschritten gebaut, damit jeder für sich nutzbar ist:</p>
+        <p style="margin-top:8px"><strong>3a Kochmodus.</strong> Schritt-für-Schritt-Ansicht, Timer je Schritt, live umgerechnete Portionen, Bildschirmsperre aus, Blättern per Pfeiltasten. Am Ende ein Schlussbildschirm mit der Einladung, gleich zu bewerten.<br>
+        <strong>3b Filter und Suche.</strong> Suche über Titel, Zutaten und Kategorien; kombinierbare Filter für Kategorie, Einfrierbar, Mindestbewertung und Zubereitungszeit. Gefiltert wird auf dem Server.<br>
+        <strong>3c Druckansicht.</strong> Drucken-Knopf in der Rezeptansicht, PDF über den Druckdialog des Browsers.<br>
+        <strong>3d Uploads und Einbettungen.</strong> Bilder und PDFs bis 12 MB; geprüft wird der Dateiinhalt, nicht die Endung. Bilder hängen am Rezept, das Entfernen löscht auch die Datei. Eine Quelladresse wird als Video oder Link erkannt — YouTube und Vimeo werden eingebettet, TikTok und Instagram als gekennzeichneter Link gezeigt.<br>
+        <strong>3e KI-Import.</strong> Rezepte aus Text, Link, Bild oder PDF. Eine Quelle kann mehrere Rezepte enthalten; sie erscheinen einzeln und lassen sich einzeln abwählen. Kategorien werden vorgeschlagen und vorhandenen zugeordnet, statt Doppelungen anzulegen.<br>
+        <strong>3f Startseite als Rezeptaufnahme.</strong> Die drei Kacheln sind dem Import gewichen; die Sammlung unter <code>/rezepte</code> blieb unberührt.</p>
+        <p style="margin-top:8px"><strong>Zusätzlich: Papierkorb.</strong> Gelöschte Rezepte liegen 30 Tage bereit und lassen sich zurückholen. Abgelaufenes räumt die App beim Zugriff selbst weg, weil es auf klassischem Webspace keine geplanten Aufgaben gibt. Erreichbar am Fuß der Rezeptliste, bewusst nicht in der Hauptnavigation.</p>
       </div>
     </div>
 
     <div class="phase">
       <div class="num">04</div>
       <div>
-        <h3>Plan, Basis <span class="chip">geplant</span></h3>
+        <h3>Plan, Basis <span class="chip hold">als Nächstes</span></h3>
         <p>Datumsweise Ansicht mit den fünf Slots plus Sonstiges-Liste, manuelles Einplanen, Trennung von Koch- und Essenstermin, Marker für Für-wen, Abwesenheit und Einkaufstag. Standardvorbelegung: kein Frühstück zuhause, Mittagessen im Geschäft.</p>
+        <p style="margin-top:10px"><strong>Gekocht-Markierung:</strong> Jeder Eintrag zeigt, ob das Rezept für diesen Tag schon gekocht wurde. <strong>Gesetzt wird sie von Hand</strong> — die App leitet nichts daraus ab, dass ein Datum vergangen ist. Die Felder dafür stehen seit Phase 1 bereit: <code>plan_entries.cooked_at</code> und <code>eaten_at</code>. Sie sind zugleich der Auslöser für den Vorrat: Kochtermin abhaken erzeugt einen Bestand, Essenstermin abhaken baut ihn wieder ab (Phase 5).</p>
       </div>
     </div>
 
@@ -476,6 +501,7 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
     </table>
   </div>
   <p style="margin-top:14px">Die Unterscheidung trägt sich selbst: Beschreibende Wörter werden nur als <em>eigenständiges Wort</em> entfernt, an einem Wortanfang wird nie abgeschnitten. Deshalb bleibt jedes zusammengesetzte Wort eine eigene Zutat. Bewusst nicht entfernt werden Wörter, die das Produkt verändern — „gemahlen“ oder „gekocht“ machen aus Kaffeebohnen etwas anderes.</p>
+  <p>Dieselbe Unterscheidung gilt in der <strong>Suche</strong>: Bei Zutaten wird nur am Wortanfang gesucht, nie mitten im Wort. „Zwiebeln“ findet deshalb keine Frühlingszwiebeln. Beim Titel bleibt die Suche dagegen bewusst großzügig.</p>
   <p><strong>Wichtig bei Änderungen:</strong> Der Schlüssel wird beim Speichern eines Rezepts festgeschrieben. Wer die Regeln anpasst, muss anschließend <code>npm run db:reindex</code> ausführen, sonst tragen ältere Rezepte noch die alten Schlüssel.</p>
 </section>
 
@@ -511,21 +537,21 @@ footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font
       <h3>Fertiger Ordner für den Live-Server <span class="tag note">zum Schluss</span></h3>
       <p>Am Ende legt Claude einen Ordner auf den Schreibtisch, der alles enthält, was auf den Live-Server hochgeladen wird. Wichtig dabei: MealMap ist kein PHP-Projekt, sondern braucht Node auf dem Server – siehe offener Punkt weiter unten.</p>
     </div>
-    <div class="item note">
-      <h3>Rezepte aus TikTok teilen <span class="tag note">Phase 3</span></h3>
-      <p>Ein Video direkt aus TikTok an MealMap weitergeben, statt den Link von Hand zu kopieren. Das Video wird als eingebettete Quelle am Rezept gespeichert, der Inhalt in Textform daneben. Gehört zum Import-Modul und wird zusammen mit Bild, PDF und Webseiten-Link gebaut.</p>
-    </div>
-    <div class="item note">
-      <h3>Mehrere Rezepte in einer Quelle <span class="tag note">Phase 3</span></h3>
-      <p>Ein Video oder ein PDF enthält oft nicht ein Rezept, sondern drei. Der Import darf deshalb nicht „eine Datei, ein Rezept“ sein: Er muss erkennen, wie viele Rezepte in der Quelle stecken, sie einzeln auftrennen und jedes davon zur Bestätigung vorlegen — mit der Möglichkeit, einzelne zu verwerfen. Das betrifft den Zuschnitt des Imports, nicht nur eine Zusatzfunktion, und ist vor dem Bau von Phase 3 einzuplanen.</p>
-    </div>
-    <div class="item note">
-      <h3>Startseite wird zur Rezeptaufnahme <span class="tag note">Phase 2/3</span></h3>
-      <p>Die heutigen drei Kacheln auf der Startseite sind ein Platzhalter. Später soll dort das Hochladen und Verwalten von Rezepten stattfinden — die Startseite wird damit die Arbeitsfläche, an der neue Rezepte hereinkommen. <strong>Die Rezeptsammlung unter <code>/rezepte</code> bleibt davon unberührt</strong> und dient weiterhin dem Durchsehen, Filtern und Öffnen vorhandener Rezepte. Umsetzbar erst, wenn es Rezepte und einen Import gibt.</p>
-    </div>
+    
+    
+    
     <div class="item note">
       <h3>Änderungswünsche in beliebiger Sprache <span class="tag note">Phase 3</span></h3>
       <p>Der Ändern-Knopf versteht heute feste Muster („2 statt 3 Eier“, „ohne Zwiebeln“, „Butter durch Öl ersetzen“). Mit hinterlegtem API-Schlüssel soll er beliebige Sätze verstehen — etwa „mach das Ganze vegan“ oder „halbiere alle Mengen außer den Gewürzen“. Die zweistufige Bedienung bleibt: erst zeigen, was verstanden wurde, dann schreiben.</p>
+    </div>
+    <div class="item note">
+      <h3>Zutatenfilter mit Auswahlliste <span class="tag note">3b+</span></h3>
+      <p>Statt nur über das Freitextfeld soll sich aus einer <strong>Liste der vorhandenen Zutaten</strong> auswählen lassen, welche enthalten sein müssen — mehrere gleichzeitig, alle müssen zutreffen. Die Liste speist sich aus den Zutaten der eigenen Sammlung, zusammengefasst über den vereinheitlichten Schlüssel (Zwiebeln und rote Zwiebeln erscheinen als ein Eintrag).</p>
+    </div>
+    <div class="item note">
+      <h3>Ähnliche Treffer statt leerer Liste <span class="tag note">3b+</span></h3>
+      <p>Findet der Zutatenfilter nichts, soll nicht nur „keine Treffer“ dastehen. Stattdessen: <strong>fast passende Rezepte</strong> mit dem Hinweis, was fehlt („enthält 2 von 3 — es fehlt Mais“), und <strong>Rezepte, die sich passend machen ließen</strong>.</p>
+      <p style="margin-top:10px"><strong>Wichtig dabei:</strong> Eine solche Änderung gilt <strong>nur für dieses eine Mal</strong> und wird nicht in die Sammlung geschrieben — außer Sarah sagt ausdrücklich, dass sie dauerhaft übernommen werden soll. Es braucht also zwei getrennte Wege: eine flüchtige Variante fürs Kochen und die vorhandene dauerhafte Änderung über den Ändern-Knopf.</p>
     </div>
     <div class="item">
       <h3>Platz für neue Ideen</h3>
@@ -594,7 +620,7 @@ cp api/config.example.php api/config.php   <span class="c"># Zugangsdaten der Da
 npm run db:migrate  <span class="c"># Tabellen in MySQL anlegen</span>
 npm run db:seed     <span class="c"># optional: Beispieldaten</span>
 npm run preview     <span class="c"># http://localhost:8888/MealMap/</span></pre>
-  <p class="setup-note">Voraussetzung ist ein laufender MAMP (Apache und MySQL) sowie eine Datenbank namens <code>mealmap</code>. Die <code>.env</code> und <code>api/config.php</code> liegen bewusst nicht im Repo, weil sie Zugangsdaten enthalten — beide haben eine Vorlage daneben.</p>
+  <p class="setup-note">Der Ordner <code>uploads/</code> muss beschreibbar sein — er nimmt Bilder und PDFs auf. Voraussetzung ist ein laufender MAMP (Apache und MySQL) sowie eine Datenbank namens <code>mealmap</code>. Die <code>.env</code> und <code>api/config.php</code> liegen bewusst nicht im Repo, weil sie Zugangsdaten enthalten — beide haben eine Vorlage daneben.</p>
 
   <h2 style="margin-top:48px">Befehle</h2>
   <p class="h2sub">Was du im Projektordner ausführen kannst</p>
@@ -634,6 +660,6 @@ npm run preview     <span class="c"># http://localhost:8888/MealMap/</span></pre
   </div>
 </section>
 
-<footer>Dossier zu MealMap &middot; letzte Aktualisierung 12.09.2026, 20:35 Uhr &middot; Datei: docs/dossier.html</footer>
+<footer>Dossier zu MealMap &middot; letzte Aktualisierung 13.09.2026, 09:30 Uhr &middot; Datei: docs/dossier.html</footer>
 
 </div>

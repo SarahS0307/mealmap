@@ -263,3 +263,85 @@
     letter-spacing: -0.01em;
   }
 }
+/* ------------------------------------------------------------------
+   Druckansicht
+   ------------------------------------------------------------------
+   Konzept 4.4: sauber formatiertes Blatt mit Zutaten und Zubereitung,
+   ohne Bedienelemente. Der Browser erzeugt daraus über "Als PDF sichern"
+   die Datei – das liefert bessere Typografie als eine JS-Bibliothek und
+   braucht keinen Server, den es auf dem Webspace ohnehin nicht gibt.
+
+   Gedruckt wird, was gerade auf dem Bildschirm steht: Wer die Portionen
+   auf sechs gestellt hat, bekommt die umgerechneten Mengen aufs Blatt.
+------------------------------------------------------------------- */
+@media print {
+  /* Alles ausblenden, was zur Bedienung gehört. */
+  header,
+  footer,
+  nav,
+  [data-print="aus"] {
+    display: none !important;
+  }
+
+  /* Farbflächen kosten Tinte und bringen auf Papier nichts. */
+  :root {
+    --background: #ffffff;
+    --foreground: #000000;
+    --card: #ffffff;
+    --card-foreground: #000000;
+    --muted-foreground: #444444;
+    --border: #cccccc;
+  }
+
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+
+  main {
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Rahmen und Schatten stören auf Papier. */
+  [class*="rounded"],
+  [class*="border"] {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* Zutaten und Schritte nicht über einen Seitenumbruch reißen. */
+  li,
+  h1,
+  h2,
+  h3 {
+    break-inside: avoid;
+  }
+
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+
+  a {
+    color: #000 !important;
+    text-decoration: none;
+  }
+
+  /* Nur beim Drucken sichtbar – etwa die Fußzeile auf dem Blatt. */
+  [data-print="nur"] {
+    display: block !important;
+  }
+
+  @page {
+    margin: 18mm 16mm;
+  }
+}
+
+/* Am Bildschirm verborgen, erscheint nur auf dem Ausdruck. */
+[data-print="nur"] {
+  display: none;
+}

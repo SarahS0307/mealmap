@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Pencil, Snowflake, Timer, Trash2, Wand2 } from "lucide-react";
+import { ArrowLeft, ChefHat, Minus, Pencil, Plus, Printer, Snowflake, Timer, Trash2, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { StarRating } from "@/components/star-rating";
 import { RecipeAdjust } from "@/components/recipe-adjust";
+import { RecipeSource } from "@/components/recipe-source";
+import { skaliereMenge, zeigeMenge } from "@/lib/portions";
 import { api, type ApiRecipe } from "@/lib/api";
 
 function Inhalt() {
@@ -21,6 +23,8 @@ function Inhalt() {
   const [bewertungOffen, setBewertungOffen] = useState(false);
   const [loeschenOffen, setLoeschenOffen] = useState(false);
   const [aendernOffen, setAendernOffen] = useState(false);
+  // Portionen lassen sich in der Ansicht umrechnen, ohne das Rezept zu ändern.
+  const [portionen, setPortionen] = useState<number | null>(null);
 
   const laden = useCallback(async () => {
     if (!id) {
@@ -32,6 +36,7 @@ function Inhalt() {
       const { recipe } = await api.recipe(id);
       setRezept(recipe);
       setKommentar(recipe.comment ?? "");
+      setPortionen(recipe.servings);
     } catch (e) {
       setFehler(e instanceof Error ? e.message : "Laden fehlgeschlagen.");
     } finally {
@@ -85,20 +90,42 @@ function Inhalt() {
     );
   }
 
+  const anzeigePortionen = portionen ?? rezept.servings;
+
   return (
     <div className="space-y-8">
-      <Button variant="ghost" size="sm" render={<Link href="/rezepte/" />}>
-        <ArrowLeft className="size-4" />
-        Zurück zu den Rezepten
-      </Button>
+      <div data-print="aus">
+        <Button variant="ghost" size="sm" render={<Link href="/rezepte/" />}>
+          <ArrowLeft className="size-4" />
+          Zurück zu den Rezepten
+        </Button>
+      </div>
 
       <header className="space-y-3">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <h1 className="text-3xl">{rezept.title}</h1>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2" data-print="aus">
+            {rezept.steps.length > 0 ? (
+              <Button
+                size="sm"
+                render={<Link href={`/rezepte/kochen/?id=${rezept.id}`} />}
+              >
+                <ChefHat className="size-4" />
+                Kochmodus
+              </Button>
+            ) : null}
             <Button variant="outline" size="sm" onClick={() => setAendernOffen(true)}>
               <Wand2 className="size-4" />
               Ändern
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.print()}
+              aria-label="Rezept drucken oder als PDF sichern"
+            >
+              <Printer className="size-4" />
+              Drucken
             </Button>
             <Button
               variant="outline"
@@ -151,6 +178,24 @@ function Inhalt() {
         ) : null}
       </header>
 
+      {rezept.images.length > 0 ? (
+        <div className="flex flex-wrap gap-3">
+          {rezept.images.map((b) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={b.id}
+              src={b.url}
+              alt=""
+              className="max-h-72 rounded-xl border border-border object-cover"
+            />
+          ))}
+        </div>
+      ) : null}
+
+      {rezept.sourceUrl ? (
+        <RecipeSource url={rezept.sourceUrl} type={rezept.sourceType} />
+      ) : null}
+
       <RecipeAdjust
         recipe={rezept}
         offen={aendernOffen}
@@ -159,15 +204,15 @@ function Inhalt() {
       />
 
       {loeschenOffen ? (
-        <div className="rounded-xl border border-destructive bg-card p-5">
-          <p className="font-medium">„{rezept.title}“ wirklich löschen?</p>
+        <div className="rounded-xl border border-(--amber) bg-card p-5">
+          <p className="font-medium">„{rezept.title}“ löschen?</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Zutaten, Zubereitung und Bewertung gehen mit. Das lässt sich nicht
-            rückgängig machen.
+            Das Rezept wandert in den Papierkorb und bleibt dort 30 Tage lang
+            wiederherstellbar – mit Zutaten, Zubereitung und Bewertung.
           </p>
           <div className="mt-4 flex gap-2">
             <Button variant="destructive" onClick={() => void loeschen()}>
-              Endgültig löschen
+              In den Papierkorb
             </Button>
             <Button variant="ghost" onClick={() => setLoeschenOffen(false)}>
               Abbrechen
@@ -180,12 +225,47 @@ function Inhalt() {
 
       {rezept.ingredients.length > 0 ? (
         <section className="space-y-3">
-          <h2 className="font-heading text-xl font-semibold">Zutaten</h2>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="font-heading text-xl font-semibold">Zutaten</h2>
+            <div className="flex items-center gap-2" data-print="aus">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setPortionen((p) => Math.max(1, (p ?? rezept.servings) - 1))}
+                aria-label="Eine Portion weniger"
+              >
+                <Minus className="size-4" />
+              </Button>
+              <span className="w-24 text-center text-sm tabular-nums">
+                {anzeigePortionen} {anzeigePortionen === 1 ? "Portion" : "Portionen"}
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setPortionen((p) => Math.min(99, (p ?? rezept.servings) + 1))}
+                aria-label="Eine Portion mehr"
+              >
+                <Plus className="size-4" />
+              </Button>
+            </div>
+          </div>
+          {anzeigePortionen !== rezept.servings ? (
+            <p className="text-sm text-muted-foreground" data-print="aus">
+              Mengen umgerechnet von {rezept.servings}. Das Rezept selbst bleibt
+              unverändert.
+            </p>
+          ) : null}
+          {/* Auf dem Ausdruck steht die Portionszahl als Text, weil der
+              Regler dort nichts verloren hat. */}
+          <p className="text-sm" data-print="nur">
+            Für {anzeigePortionen} {anzeigePortionen === 1 ? "Portion" : "Portionen"}
+          </p>
           <ul className="divide-y divide-border rounded-xl border border-border bg-card">
             {rezept.ingredients.map((z, i) => (
               <li key={z.id ?? i} className="flex gap-3 p-3">
                 <span className="w-24 shrink-0 tabular-nums text-muted-foreground">
-                  {z.amount !== null ? z.amount : ""} {z.unit ?? ""}
+                  {zeigeMenge(skaliereMenge(z.amount, rezept.servings, anzeigePortionen))}{" "}
+                  {z.unit ?? ""}
                 </span>
                 <span>{z.name}</span>
               </li>
@@ -228,7 +308,7 @@ function Inhalt() {
         </section>
       ) : null}
 
-      <section className="space-y-3">
+      <section className="space-y-3" data-print="aus">
         <h2 className="font-heading text-xl font-semibold">Bewertung</h2>
         <div className="rounded-xl border border-border bg-card p-4 space-y-3">
           <StarRating value={rezept.rating} onChange={(w) => void bewerten(w)} />
@@ -272,6 +352,13 @@ function Inhalt() {
           )}
         </div>
       </section>
+      {/* Nur auf dem Ausdruck: Herkunft des Blattes. */}
+      <p
+        data-print="nur"
+        className="mt-8 border-t border-border pt-3 text-xs text-muted-foreground"
+      >
+        {rezept.title} · aus MealMap
+      </p>
     </div>
   );
 }

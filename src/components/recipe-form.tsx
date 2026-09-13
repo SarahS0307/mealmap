@@ -2,13 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { GripVertical, Plus, Trash2 } from "lucide-react";
+import { GripVertical, Image as BildIcon, Plus, Trash2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { api, type ApiCategory, type RecipeInput } from "@/lib/api";
+import { api, type ApiCategory, type ApiImage, type RecipeInput } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { useRef } from "react";
 
 type ZutatZeile = { name: string; amount: string; unit: string };
 type SchrittZeile = { title: string; content: string; timerMinutes: string };
@@ -32,6 +33,10 @@ export function RecipeForm({ recipeId }: { recipeId?: string }) {
   const [schritte, setSchritte] = useState<SchrittZeile[]>([{ ...LEERER_SCHRITT }]);
   const [kategorien, setKategorien] = useState<ApiCategory[]>([]);
   const [gewaehlt, setGewaehlt] = useState<string[]>([]);
+  const [quelle, setQuelle] = useState("");
+  const [bilder, setBilder] = useState<ApiImage[]>([]);
+  const [laedtBild, setLaedtBild] = useState(false);
+  const bildFeld = useRef<HTMLInputElement>(null);
 
   const [laedt, setLaedt] = useState(Boolean(recipeId));
   const [speichert, setSpeichert] = useState(false);
@@ -51,6 +56,8 @@ export function RecipeForm({ recipeId }: { recipeId?: string }) {
       setDauer(recipe.prepMinutes ? String(recipe.prepMinutes) : "");
       setEinfrierbar(recipe.freezable);
       setGewaehlt(recipe.categories.map((k) => k.id));
+      setQuelle(recipe.sourceUrl ?? "");
+      setBilder(recipe.images ?? []);
       setZutaten(
         recipe.ingredients.length > 0
           ? recipe.ingredients.map((z) => ({
@@ -107,6 +114,7 @@ export function RecipeForm({ recipeId }: { recipeId?: string }) {
           timerSeconds: s.timerMinutes === "" ? null : Number(s.timerMinutes) * 60,
         })),
       categoryIds: gewaehlt,
+      sourceUrl: quelle.trim() || null,
     };
 
     try {
@@ -117,6 +125,34 @@ export function RecipeForm({ recipeId }: { recipeId?: string }) {
     } catch (err) {
       setFehler(err instanceof Error ? err.message : "Speichern fehlgeschlagen.");
       setSpeichert(false);
+    }
+  }
+
+  async function bildHochladen(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (!f || !recipeId) return;
+
+    setLaedtBild(true);
+    setFehler(null);
+    try {
+      const { file } = await api.upload(f);
+      const { image } = await api.addRecipeImage(recipeId, file.url);
+      setBilder((alt) => [...alt, image]);
+    } catch (err) {
+      setFehler(err instanceof Error ? err.message : "Upload fehlgeschlagen.");
+    } finally {
+      setLaedtBild(false);
+      if (bildFeld.current) bildFeld.current.value = "";
+    }
+  }
+
+  async function bildEntfernen(imageId: string) {
+    if (!recipeId) return;
+    try {
+      await api.removeRecipeImage(recipeId, imageId);
+      setBilder((alt) => alt.filter((b) => b.id !== imageId));
+    } catch (err) {
+      setFehler(err instanceof Error ? err.message : "Entfernen fehlgeschlagen.");
     }
   }
 
@@ -282,6 +318,72 @@ export function RecipeForm({ recipeId }: { recipeId?: string }) {
         </Button>
         <p className="text-sm text-muted-foreground">
           Eine Minutenangabe macht aus dem Schritt später im Kochmodus einen Timer.
+        </p>
+      </Abschnitt>
+
+      <Abschnitt titel="Bilder">
+        {recipeId ? (
+          <>
+            {bilder.length > 0 ? (
+              <div className="flex flex-wrap gap-3">
+                {bilder.map((b) => (
+                  <div key={b.id} className="relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={b.url}
+                      alt=""
+                      className="size-28 rounded-lg border border-border object-cover"
+                    />
+                    <button
+                      type="button"
+                      aria-label="Bild entfernen"
+                      onClick={() => void bildEntfernen(b.id)}
+                      className="absolute -top-2 -right-2 grid size-6 place-items-center rounded-full bg-destructive text-white"
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            <input
+              ref={bildFeld}
+              type="file"
+              accept="image/*"
+              onChange={bildHochladen}
+              className="hidden"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={laedtBild}
+              onClick={() => bildFeld.current?.click()}
+            >
+              {laedtBild ? <BildIcon className="size-4" /> : <Upload className="size-4" />}
+              {laedtBild ? "Lädt hoch …" : "Bild hinzufügen"}
+            </Button>
+          </>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Bilder lassen sich hinzufügen, sobald das Rezept einmal gespeichert
+            ist.
+          </p>
+        )}
+      </Abschnitt>
+
+      <Abschnitt titel="Quelle">
+        <Input
+          value={quelle}
+          onChange={(e) => setQuelle(e.target.value)}
+          placeholder="https://… (Webseite, YouTube, TikTok)"
+          inputMode="url"
+          aria-label="Adresse der Quelle"
+        />
+        <p className="text-sm text-muted-foreground">
+          Videos werden in der Rezeptansicht eingebettet, andere Adressen als
+          Link gezeigt.
         </p>
       </Abschnitt>
 

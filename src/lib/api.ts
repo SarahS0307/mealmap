@@ -61,6 +61,29 @@ export type ApiRecipeSummary = {
   categories: ApiCategory[];
 };
 
+export type ApiImage = { id: string; url: string };
+
+/** Eine hochgeladene Datei, noch keinem Rezept zugeordnet. */
+export type ApiUpload = {
+  url: string;
+  dateiname: string;
+  mimeType: string;
+  art: "bild" | "pdf";
+  groesse: number;
+};
+
+/** Ein vom Import erkanntes Rezept – noch nicht gespeichert. */
+export type ApiImportedRecipe = {
+  title: string;
+  servings: number;
+  prepMinutes: number | null;
+  freezable: boolean;
+  notes: string | null;
+  categories: string[];
+  ingredients: { name: string; amount: number | null; unit: string | null }[];
+  steps: { title: string | null; content: string; timerSeconds: number | null }[];
+};
+
 export type ApiRecipe = ApiRecipeSummary & {
   notes: string | null;
   comment: string | null;
@@ -68,6 +91,24 @@ export type ApiRecipe = ApiRecipeSummary & {
   sourceUrl: string | null;
   ingredients: ApiIngredient[];
   steps: ApiStep[];
+  images: ApiImage[];
+};
+
+/** Filter für die Rezeptliste. Alles freiwillig, alles kombinierbar. */
+export type RecipeFilter = {
+  q?: string;
+  category?: string | null;
+  freezable?: boolean | null;
+  minRating?: number | null;
+  maxMinutes?: number | null;
+};
+
+/** Ein Rezept im Papierkorb. */
+export type ApiTrashedRecipe = {
+  id: string;
+  title: string;
+  deletedAt: string;
+  remainingDays: number;
 };
 
 /** Eine geplante oder ausgeführte Änderung an einem Rezept. */
@@ -92,6 +133,8 @@ export type RecipeInput = {
   ingredients: { name: string; amount: number | null; unit: string | null }[];
   steps: { title: string | null; content: string; timerSeconds: number | null }[];
   categoryIds: string[];
+  /** Eingebettete Quelle: Link oder Video. */
+  sourceUrl?: string | null;
 };
 
 export class ApiError extends Error {
@@ -189,9 +232,85 @@ export const api = {
       body: { moveToCategoryId: moveToCategoryId ?? "", force: force ?? false },
     }),
 
+  // --- Dateien ---
+
+  /**
+   * Lädt eine Datei hoch. Läuft nicht über request(), weil der Rumpf hier
+   * multipart ist und der Browser die Kopfzeile selbst setzen muss.
+   */
+  upload: async (datei: File): Promise<{ file: ApiUpload }> => {
+    const daten = new FormData();
+    daten.append("file", datei);
+
+    let antwort: Response;
+    try {
+      antwort = await fetch(`${apiBase()}/uploads`, {
+        method: "POST",
+        credentials: "include",
+        body: daten,
+      });
+    } catch {
+      throw new ApiError("Keine Verbindung zum Server.", 0);
+    }
+
+    const text = await antwort.text();
+    const inhalt = text ? (JSON.parse(text) as Record<string, unknown>) : {};
+    if (!antwort.ok) {
+      throw new ApiError(
+        typeof inhalt.error === "string" ? inhalt.error : "Upload fehlgeschlagen.",
+        antwort.status,
+        inhalt,
+      );
+    }
+    return inhalt as { file: ApiUpload };
+  },
+
+  addRecipeImage: (recipeId: string, url: string) =>
+    request<{ image: ApiImage }>(`/recipes/${recipeId}/images`, {
+      method: "POST",
+      body: { url },
+    }),
+
+  removeRecipeImage: (recipeId: string, imageId: string) =>
+    request<{ deleted: boolean }>(`/recipes/${recipeId}/images/${imageId}`, {
+      method: "DELETE",
+    }),
+
+  // --- Import ---
+
+  importStatus: () =>
+    request<{ available: boolean; reason: string | null }>("/import"),
+
+  /**
+   * Liest Rezepte aus einer Quelle, ohne sie zu speichern. Genau eines von
+   * text, url oder uploadUrl angeben.
+   */
+  importRead: (quelle: { text?: string; url?: string; uploadUrl?: string }) =>
+    request<{
+      recipes: ApiImportedRecipe[];
+      sourceUrl: string | null;
+      existingCategories: ApiCategory[];
+      count: number;
+    }>("/import", { method: "POST", body: quelle }),
+
   // --- Rezepte ---
 
-  recipes: () => request<{ recipes: ApiRecipeSummary[] }>("/recipes"),
+  /** Kombinierbare Filter für die Rezeptliste. Leere Werte werden weggelassen. */
+  recipes: (filter: RecipeFilter = {}) => {
+    const p = new URLSearchParams();
+    if (filter.q?.trim()) p.set("q", filter.q.trim());
+    if (filter.category) p.set("category", filter.category);
+    if (filter.freezable !== undefined && filter.freezable !== null) {
+      p.set("freezable", filter.freezable ? "1" : "0");
+    }
+    if (filter.minRating) p.set("minRating", String(filter.minRating));
+    if (filter.maxMinutes) p.set("maxMinutes", String(filter.maxMinutes));
+
+    const frage = p.toString();
+    return request<{ recipes: ApiRecipeSummary[] }>(
+      `/recipes${frage ? `?${frage}` : ""}`,
+    );
+  },
 
   recipe: (id: string) => request<{ recipe: ApiRecipe }>(`/recipes/${id}`),
 
@@ -220,6 +339,25 @@ export const api = {
       { method: "POST", body: { instruction, apply } },
     ),
 
+  /** Verschiebt das Rezept in den Papierkorb – es bleibt wiederherstellbar. */
   deleteRecipe: (id: string) =>
-    request<{ deleted: boolean }>(`/recipes/${id}`, { method: "DELETE" }),
+    request<{ deleted: boolean; restorableDays: number }>(`/recipes/${id}`, {
+      method: "DELETE",
+    }),
+
+  trash: () =>
+    request<{ recipes: ApiTrashedRecipe[]; retentionDays: number }>(
+      "/recipes/trash",
+    ),
+
+  restoreRecipe: (id: string) =>
+    request<{ restored: boolean; recipe: ApiRecipe }>(`/recipes/${id}/restore`, {
+      method: "POST",
+    }),
+
+  /** Löscht endgültig. Danach ist das Rezept wirklich weg. */
+  purgeRecipe: (id: string) =>
+    request<{ purged: boolean }>(`/recipes/${id}/permanent`, {
+      method: "DELETE",
+    }),
 };

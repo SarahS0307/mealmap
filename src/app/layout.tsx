@@ -32,11 +32,16 @@ export const metadata: Metadata = {
 };
 
 /**
- * Wird nur gesetzt, wenn die App über `npm run sync` hinter dem
- * BrowserSync-Proxy läuft. Der Pfad bleibt relativ, damit er auch über die
- * Netzwerk-URL am Handy auf den Proxy zeigt.
+ * Adresse des BrowserSync-Clients, gesetzt von `npm run watch`.
+ *
+ * BrowserSync liefert die Seite nicht aus – das macht Apache. Es meldet dem
+ * Browser nur, wenn neu gebaut wurde, damit die Seite sich selbst neu lädt.
+ * Deshalb bleibt die gewohnte Adresse localhost:8888/MealMap/ bestehen.
+ *
+ * {host} wird durch den Rechnernamen ersetzt, über den die Seite geöffnet
+ * wurde – am Handy also die Netzwerk-IP statt localhost.
  */
-const browserSyncEnabled = process.env.BROWSERSYNC === "1";
+const browserSyncUrl = process.env.NEXT_PUBLIC_BROWSERSYNC_URL ?? "";
 
 /**
  * Setzt die Farbschema-Klasse, bevor die Seite gezeichnet wird. Ohne diesen
@@ -64,8 +69,12 @@ export default function RootLayout({
             <AppShell>{children}</AppShell>
           </SessionProvider>
         </ThemeProvider>
-        {browserSyncEnabled ? (
-          <script src="/browser-sync/browser-sync-client.js" async />
+        {browserSyncUrl ? (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `(function(){var u=${JSON.stringify(browserSyncUrl)}.replace("{host}",location.hostname);var s=document.createElement("script");s.src=u;s.async=true;document.head.appendChild(s)})()`,
+            }}
+          />
         ) : null}
       </body>
     </html>
